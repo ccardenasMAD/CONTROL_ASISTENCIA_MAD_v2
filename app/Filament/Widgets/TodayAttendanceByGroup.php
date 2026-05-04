@@ -39,7 +39,7 @@ class TodayAttendanceByGroup extends ChartWidget
         $attendedByGroup = Attendance::query()
             ->select('groups.name as group_name', DB::raw('COUNT(DISTINCT attendances.user_id) as total'))
             ->join('groups', 'groups.id', '=', 'attendances.group_id')
-            ->whereDate('attendance_date', $today)
+            ->whereDate('date', $today)
             ->groupBy('groups.name')
             ->pluck('total', 'group_name');
 

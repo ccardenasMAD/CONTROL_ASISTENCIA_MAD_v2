@@ -53,15 +53,21 @@ class AttendanceResource extends Resource
                 ->searchable()
                 ->required(),
 
-            Forms\Components\DatePicker::make('attendance_date')
+            Forms\Components\DatePicker::make('date')
                 ->label('Fecha')
                 ->required(),
 
-            Forms\Components\DateTimePicker::make('check_in')
-                ->label('Entrada'),
+            Forms\Components\TimePicker::make('time')
+                ->label('Hora')
+                ->required(),
 
-            Forms\Components\DateTimePicker::make('check_out')
-                ->label('Salida'),
+            Forms\Components\Select::make('type')
+                ->label('Tipo')
+                ->options([
+                    'in' => 'Entrada',
+                    'out' => 'Salida',
+                ])
+                ->required(),
 
             Forms\Components\Select::make('source')
                 ->label('Origen')
@@ -93,7 +99,7 @@ class AttendanceResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('attendance_date')
+                Tables\Columns\TextColumn::make('date')
                     ->label('Fecha')
                     ->date(),
 
@@ -104,13 +110,17 @@ class AttendanceResource extends Resource
                 Tables\Columns\TextColumn::make('group.name')
                     ->label('Grupo'),
 
-                Tables\Columns\TextColumn::make('check_in')
-                    ->label('Entrada')
-                    ->dateTime(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Evento')
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'in' => 'Entrada',
+                        'out' => 'Salida',
+                        default => $state,
+                    }),
 
-                Tables\Columns\TextColumn::make('check_out')
-                    ->label('Salida')
-                    ->dateTime(),
+                Tables\Columns\TextColumn::make('time')
+                    ->label('Hora')
+                    ->formatStateUsing(fn (?string $state) => $state ? substr($state, 0, 5) : '—'),
 
                 Tables\Columns\BadgeColumn::make('status')
                                 ->label('Estado')

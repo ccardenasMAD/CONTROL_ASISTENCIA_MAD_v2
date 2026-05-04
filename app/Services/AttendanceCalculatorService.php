@@ -19,10 +19,10 @@ class AttendanceCalculatorService
         // Obtener el turno activo del grupo para ese día
         $shiftGroup = ShiftGroup::where('group_id', $attendance->group_id)
             ->where('is_active', true)
-            ->where('start_date', '<=', $attendance->attendance_date)
+            ->where('start_date', '<=', $attendance->date)
             ->where(function ($q) use ($attendance) {
                     $q->whereNull('end_date')
-                    ->orWhere('end_date', '>=', $attendance->attendance_date);
+                    ->orWhere('end_date', '>=', $attendance->date);
             })
             ->with('shift')
             ->first();
@@ -35,8 +35,8 @@ class AttendanceCalculatorService
         $shift = $shiftGroup->shift;
 
         // Construir horarios reales del turno
-        $shiftStart = Carbon::parse($attendance->attendance_date)->setTimeFromTimeString($shift->start_time);
-        $shiftEnd = Carbon::parse($attendance->attendance_date)->setTimeFromTimeString($shift->end_time);
+        $shiftStart = Carbon::parse($attendance->date)->setTimeFromTimeString($shift->start_time);
+        $shiftEnd = Carbon::parse($attendance->date)->setTimeFromTimeString($shift->end_time);
 
         $checkIn  = Carbon::parse($attendance->check_in);
         $checkOut = Carbon::parse($attendance->check_out);

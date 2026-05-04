@@ -39,7 +39,7 @@
         {{-- Acción principal --}}
         <div class="flex justify-center">
 
-            @if(!$attendance)
+            @if($actionType === 'in')
                 <x-filament::button 
                     wire:click="checkIn" 
                     size="xl"
@@ -48,10 +48,10 @@
                            hover:bg-gray-800 
                            dark:bg-white dark:text-black dark:hover:bg-gray-200
                            transition rounded-xl shadow-sm">
-                    ⏰ Marcar Entrada
+                    {{ $actionLabel }}
                 </x-filament::button>
 
-            @elseif(!$attendance->check_out)
+            @elseif($actionType === 'out')
                 <x-filament::button 
                     wire:click="checkOut" 
                     size="xl"
@@ -60,16 +60,16 @@
                            hover:bg-black 
                            dark:bg-gray-100 dark:text-black dark:hover:bg-white
                            transition rounded-xl shadow-sm">
-                    🚪 Marcar Salida
+                    {{ $actionLabel }}
                 </x-filament::button>
 
             @else
                 <div class="text-center">
                     <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        ✔ Asistencia completada
+                        ✔ Asistencia registrada
                     </div>
                     <div class="text-sm text-gray-500 mt-1">
-                        Ya registraste entrada y salida hoy
+                        Estado actual: {{ $stateLabel ?? '—' }}
                     </div>
                 </div>
             @endif

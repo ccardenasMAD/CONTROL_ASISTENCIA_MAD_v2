@@ -182,7 +182,7 @@ class ReportsCenter extends Page implements Forms\Contracts\HasForms, HasTable
         $query = Attendance::query()
             ->select('attendances.*')
             ->with(['user', 'group'])
-            ->whereBetween('attendance_date', [
+            ->whereBetween('date', [
                 $this->startDate,
                 $this->endDate,
             ]);
@@ -204,7 +204,7 @@ class ReportsCenter extends Page implements Forms\Contracts\HasForms, HasTable
                 ->join('users', 'users.id', '=', 'attendances.user_id')
                 ->orderBy('users.name'),
 
-            'date'  => $query->orderBy('attendance_date'),
+            'date'  => $query->orderBy('date'),
         };
 
         return $query;
@@ -218,7 +218,7 @@ class ReportsCenter extends Page implements Forms\Contracts\HasForms, HasTable
         return $table
             ->query(fn () => $this->getTableQuery())
             ->columns([
-                Tables\Columns\TextColumn::make('attendance_date')
+                Tables\Columns\TextColumn::make('date')
                     ->label('Fecha')
                     ->date(),
 
@@ -228,15 +228,18 @@ class ReportsCenter extends Page implements Forms\Contracts\HasForms, HasTable
                 Tables\Columns\TextColumn::make('group.name')
                     ->label('Grupo'),
 
-                Tables\Columns\TextColumn::make('check_in')
-                    ->label('Entrada')
-                    ->dateTime('H:i')
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Evento')
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'in' => 'Entrada',
+                        'out' => 'Salida',
+                        default => $state,
+                    })
                     ->placeholder('—'),
 
-                Tables\Columns\TextColumn::make('check_out')
-                    ->label('Salida')
-                    ->dateTime('H:i')
-                    ->placeholder('—'),
+                Tables\Columns\TextColumn::make('time')
+                    ->label('Hora')
+                    ->formatStateUsing(fn (?string $state) => $state ? substr($state, 0, 5) : '—'),
 
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')

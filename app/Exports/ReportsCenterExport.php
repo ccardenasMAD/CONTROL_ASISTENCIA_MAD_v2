@@ -24,8 +24,8 @@ class ReportsCenterExport implements FromCollection, WithHeadings, WithMapping
             'Fecha',
             'Usuario',
             'Grupo',
-            'Entrada',
-            'Salida',
+            'Evento',
+            'Hora',
             'Estado',
         ];
     }
@@ -33,11 +33,15 @@ class ReportsCenterExport implements FromCollection, WithHeadings, WithMapping
     public function map($attendance): array
     {
         return [
-            optional($attendance->attendance_date)->format('d/m/Y') ?? '—',
+            optional($attendance->date)->format('d/m/Y') ?? '—',
             $attendance->user->name ?? '—',
             $attendance->group->name ?? '—',
-            optional($attendance->check_in)->format('H:i') ?? '—',
-            optional($attendance->check_out)->format('H:i') ?? '—',
+            match ($attendance->type) {
+                'in' => 'Entrada',
+                'out' => 'Salida',
+                default => '—',
+            },
+            $attendance->time ? substr($attendance->time, 0, 5) : '—',
             $this->formatStatus($attendance->status),
         ];
     }

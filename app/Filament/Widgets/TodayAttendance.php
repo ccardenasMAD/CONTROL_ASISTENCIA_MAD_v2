@@ -16,9 +16,10 @@ class TodayAttendance extends BaseWidget
     protected function getTableQuery(): Builder
     {
         return Attendance::query()
-            ->whereDate('attendance_date', now()->toDateString())
+            ->whereDate('date', now()->toDateString())
             ->with(['user', 'group'])
-            ->orderBy('check_in');
+            ->orderBy('time')
+            ->orderBy('id');
     }
 
     protected function getTableColumns(): array
@@ -33,14 +34,17 @@ class TodayAttendance extends BaseWidget
                 ->label('Grupo')
                 ->sortable(),
 
-            Tables\Columns\TextColumn::make('check_in')
-                ->label('Entrada')
-                ->dateTime('H:i')
-                ->sortable(),
+            Tables\Columns\TextColumn::make('type')
+                ->label('Evento')
+                ->formatStateUsing(fn ($state) => match ($state) {
+                    'in' => 'Entrada',
+                    'out' => 'Salida',
+                    default => $state,
+                }),
 
-            Tables\Columns\TextColumn::make('check_out')
-                ->label('Salida')
-                ->dateTime('H:i')
+            Tables\Columns\TextColumn::make('time')
+                ->label('Hora')
+                ->formatStateUsing(fn (?string $state) => $state ? substr($state, 0, 5) : '—')
                 ->sortable(),
 
             Tables\Columns\BadgeColumn::make('status')
