@@ -73,16 +73,20 @@
         </div>
 
         {{-- Tabla Maestra: Con estructura y traducción --}}
-    
-        <div class="w-full bg-[#0d0d0d] border border-white/5 rounded-2xl overflow-hidden shadow-2xl p-6">
+        <div class="mt-12 px-8 pb-12">
+        <div class="w-full bg-[#0d0d0d] border border-white/10 rounded-3xl overflow-hidden shadow-2xl p-6">
+        <div class="p-10">
             <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-            <table class="w-full text-left border-separate border-spacing-0">
+                <table class="w-full text-left border-separate border-spacing-0">
+            
                     <thead>
-                        <tr class="bg-white/[0.02]">
+                    <tr class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
                             {{-- Cabecera Nombre --}}
-                            <th class="p-5 sticky left-0 bg-[#0d0d0d] z-30 w-72 border-r border-white/10 text-[11px] font-black text-gray-500 uppercase tracking-widest">
+                            <th class="p-6 sticky left-3 bg-[#0d0d0d] z-30 w-72 border-r border-white/10 text-[12px] font-black text-gray-500 uppercase tracking-widest">
                                 Empleado
                             </th>
+
+                            
                             
                             {{-- Días de la semana en ESPAÑOL --}}
                             @foreach($daysInMonth as $day)
@@ -91,8 +95,9 @@
                                     $nombreDia = $nombresDias[$day->dayOfWeek];
                                     $esFinDeSemana = $day->isWeekend();
                                 @endphp
-                                <th class="p-2 text-center border-r border-white/5 {{ $esFinDeSemana ? 'bg-white/[0.03]' : '' }}">
-                                    <span class="block text-[10px] {{ $esFinDeSemana ? 'text-red-400/50' : 'text-gray-600' }} font-bold mb-1">{{ $nombreDia }}</span>
+                                
+                                <th class="pb-8 px-2 text-center border-b border-white/5">
+                                    <span class="block text-[9px] {{ $esFinDeSemana ? 'text-red-400/50' : 'text-gray-600' }} font-bold mb-1">{{ $nombreDia }}</span>
                                     <span class="text-xs {{ $day->isToday() ? 'bg-primary-500 text-white rounded-full px-1.5 py-0.5' : 'text-gray-400' }}">{{ $day->format('j') }}</span>
                                 </th>
                             @endforeach
@@ -118,30 +123,97 @@
                                     </div>
                                 </td>
                                 
-                                {{-- Celdas del calendario --}}
-                                @foreach($daysInMonth as $day)
-                                    @php $attendance = $user->attendances->firstWhere('attendance_date', $day->format('Y-m-d')); @endphp
-                                    <td class="p-1.8 border-r border-white/5 {{ $day->isWeekend() ? 'bg-white/[0.03]' : '' }}">
-                                        @if($attendance)
-                                            <div class="w-full h-8 rounded-md bg-green-500/80 border border-green-400/20 shadow-[0_0_10px_rgba(34,197,94,0.1)] transition-transform group-hover:scale-[1.02]" title="Presente"></div>
-                                        @else
-                                            <div class="w-full h-8 rounded-md border border-dashed border-white/5 opacity-20 group-hover:opacity-100 transition-opacity"></div>
-                                        @endif
-                                    </td>
-                                @endforeach
+                                {{-- Celdas del calendario con Tooltips --}}
+@foreach($daysInMonth as $day)
+    @php 
+        $attendance = $user->attendances->firstWhere('attendance_date', $day->format('Y-m-d'));
+        
+        // Preparamos el mensaje del tooltip según el estado
+        $tooltipContent = "Sin registro";
+        if ($attendance) {
+            $checkIn = $attendance->check_in ? date('H:i', strtotime($attendance->check_in)) : '--:--';
+            $checkOut = $attendance->check_out ? date('H:i', strtotime($attendance->check_out)) : '--:--';
+            $tooltipContent = "Entrada: {$checkIn} | Salida: {$checkOut}";
+        } elseif ($day->isPast() && !$day->isWeekend()) {
+            $tooltipContent = "Ausencia injustificada";
+        } elseif ($day->isWeekend()) {
+            $tooltipContent = "Fin de semana";
+        }
+    @endphp
 
-                                {{-- Total Fijo --}}
+    <td class="p-1.5 border-r border-white/5 {{ $day->isWeekend() ? 'bg-white/[0.01]' : '' }}">
+    <div 
+        x-data 
+        x-tooltip.raw="{{ $tooltipContent }}"
+        {{-- Esta es la magia: Al hacer clic, llamamos a una función de Filament/Livewire --}}
+        wire:click="openAttendanceModal('{{ $user->id }}', '{{ $day->format('Y-m-d') }}')"
+        class="relative w-full h-9 rounded-lg transition-all duration-200 group/cell cursor-pointer"
+    >
+        @if($attendance)
+            {{-- Presente --}}
+            <div class="w-full h-full rounded-lg bg-green-500/80 border border-green-400/20 shadow-[0_0_10px_rgba(34,197,94,0.1)] group-hover/cell:scale-105 group-hover/cell:bg-green-400 transition-all"></div>
+        @elseif($day->isPast() && !$day->isWeekend())
+            {{-- Falta --}}
+            <div class="w-full h-full rounded-lg bg-red-500/10 border border-red-500/20 opacity-60 group-hover/cell:opacity-100 group-hover/cell:bg-red-500/20 transition-all"></div>
+        @else
+            {{-- Vacío --}}
+            <div class="w-full h-full rounded-lg border border-dashed border-white/5 opacity-10 group-hover/cell:opacity-30 group-hover/cell:border-primary-500 transition-all"></div>
+        @endif
+    </div>
+</td>
+@endforeach
+                                {{-- Total Fijo (Horas Acumuladas) --}}
                                 <td class="p-4 text-center sticky right-0 bg-[#0d0d0d] z-20 border-l border-white/10 group-hover:bg-[#121212] transition-colors">
                                     <div class="flex flex-col items-center">
                                         <span class="text-sm font-black text-gray-300">{{ $user->attendances->count() * 8 }}h</span>
-                                        <span class="text-[9px] text-gray-600 font-medium">0m</span>
+                                        <span class="text-[9px] text-gray-600 font-medium italic">0m</span>
                                     </div>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
+
+                    {{-- PIE DE TABLA: Totales Diarios --}}
+                    <tfoot class="bg-white/[0.02]">
+                        <tr class="border-t border-white/10">
+                            <td class="p-5 sticky left-0 bg-[#0d0d0d] z-30 border-r border-white/10 text-[11px] font-black text-gray-500 uppercase tracking-widest">
+                                Total Presentes
+                            </td>
+
+                            @foreach($daysInMonth as $day)
+                                @php
+                                    $totalDia = $users->filter(fn($u) => $u->attendances->contains('attendance_date', $day->format('Y-m-d')))->count();
+                                @endphp
+                                <td class="p-2 text-center border-r border-white/5">
+                                    <span class="text-[11px] font-bold {{ $totalDia > 0 ? 'text-primary-500' : 'text-gray-700' }}">
+                                        {{ $totalDia }}
+                                    </span>
+                                </td>
+                            @endforeach
+
+                            <td class="p-5 sticky right-0 bg-[#0d0d0d] z-30 border-l border-white/10"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
+        </div> {{-- Fin del div p-6/p-10 interno --}}
+    </div> {{-- Fin del div bg-[#0d0d0d] con rounded-2xl --}}
+
+    {{-- LEYENDA DE ESTADOS: Guía visual profesional --}}
+    <div class="mt-6 flex flex-wrap items-center gap-8 px-4">
+        <div class="flex items-center gap-2.5">
+            <div class="w-3.5 h-3.5 rounded-md bg-green-500/80 border border-green-400/20 shadow-[0_0_8px_rgba(34,197,94,0.2)]"></div>
+            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Presente</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+            <div class="w-3.5 h-3.5 rounded-md bg-red-500/20 border border-red-500/40"></div>
+            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Ausencia</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+            <div class="w-3.5 h-3.5 rounded-md border border-dashed border-white/20"></div>
+            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Sin Registro / Futuro</span>
         </div>
     </div>
+</div> {{-- Fin del contenedor mt-12 --}}
+
 </x-filament-panels::page>

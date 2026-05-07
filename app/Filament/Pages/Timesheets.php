@@ -4,7 +4,6 @@ namespace App\Filament\Pages;
 
 use App\Models\User;
 use App\Models\Group;
-use App\Models\Turno;
 use App\Models\Shift;
 use Filament\Pages\Page;
 use Carbon\Carbon;
@@ -14,6 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\TimesheetExport;
 use Illuminate\Support\Facades\Auth;
+use Filament\Notifications\Notification;
 
 class Timesheets extends Page
 {
@@ -23,10 +23,6 @@ class Timesheets extends Page
     protected static ?string $navigationGroup = 'Asistencia';
     protected static string $view = 'filament.pages.timesheets';
 
-    /**
-     * Propiedades sincronizadas con la URL
-     * Esto permite que al filtrar, la URL cambie y puedas compartir el enlace filtrado.
-     */
     #[Url]
     public $month = null;
 
@@ -37,15 +33,13 @@ class Timesheets extends Page
     public $groupId = null;
 
     #[Url]
-    public $search = ''; // Nueva propiedad para el buscador
-   
-    #[Url]
-    public $scheduleId = null; // Filtro de Turnos
+    public $search = '';
 
     #[Url]
-    public $payrollType = 'all'; // Filtro de Horas (all, regular, overtime)
+    public $scheduleId = null;
 
-
+    #[Url]
+    public $payrollType = 'all';
 
     public function mount()
     {
@@ -60,9 +54,6 @@ class Timesheets extends Page
         return Auth::check() && $user && $user->hasRole('admin');
     }
 
-    /**
-     * Lógica para cambiar de mes
-     */
     public function changeMonth($direction)
     {
         $date = Carbon::createFromDate($this->year, $this->month, 1)->addMonths($direction);
@@ -70,9 +61,6 @@ class Timesheets extends Page
         $this->year = $date->year;
     }
 
-    /**
-     * Exportación a PDF
-     */
     public function exportPdf()
     {
         $data = $this->getViewData();
@@ -83,9 +71,6 @@ class Timesheets extends Page
         }, "Reporte_Asistencia_{$this->month}_{$this->year}.pdf");
     }
 
-    /**
-     * Exportación a Excel
-     */
     public function exportExcel()
     {
         return Excel::download(
@@ -95,8 +80,19 @@ class Timesheets extends Page
     }
 
     /**
-     * Preparación de datos para la vista (Blade)
+     *  Maneja el clic en las celdas de la tabla
      */
+    public function openAttendanceModal($userId, $date)
+    {
+        Notification::make()
+            ->title('Registro de Asistencia')
+            ->body("Abriendo detalles para el usuario ID: {$userId} en la fecha: {$date}")
+            ->info()
+            ->send();
+            
+        // Aquí puedes integrar un modal de Filament más adelante
+    }
+
     protected function getViewData(): array
     {
         $currentMonthDate = Carbon::createFromDate($this->year, $this->month, 1);
@@ -106,50 +102,41 @@ class Timesheets extends Page
             $currentMonthDate->copy()->endOfMonth()
         );
 
-
-
-        // Iniciamos la consulta de usuarios
         $usersQuery = User::query();
 
-        // Filtro por Búsqueda (Nombre)
         if (!empty($this->search)) {
             $usersQuery->where('name', 'like', "%{$this->search}%");
         }
 
-        // Filtro por Grupo
         if ($this->groupId) {
             $usersQuery->whereHas('groups', function ($q) {
                 $q->where('groups.id', $this->groupId);
             });
         }
 
-        // 4.  Filtro por Schedules (Turnos)
-    // Asumiendo que tu modelo User tiene una relación 'shifts' o 'schedules'
         if ($this->scheduleId) {
             $usersQuery->whereHas('shifts', function ($q) { 
                 $q->where('id', $this->scheduleId);
             });
         }
 
-       // 5. Carga de asistencias con filtro de Payroll Hours
-    $users = $usersQuery->with(['attendances' => function($query) {
-        $query->whereMonth('attendance_date', $this->month)
-              ->whereYear('attendance_date', $this->year);
-        
-        //  Lógica de Payroll (Ejemplo: filtrar solo horas extra)
-        if ($this->payrollType === 'overtime') {
-            $query->where('is_overtime', true); 
-        } elseif ($this->payrollType === 'regular') {
-            $query->where('is_overtime', false);
-        }
-    }])->get();
+        $users = $usersQuery->with(['attendances' => function($query) {
+            $query->whereMonth('attendance_date', $this->month)
+                  ->whereYear('attendance_date', $this->year);
+            
+            if ($this->payrollType === 'overtime') {
+                $query->where('is_overtime', true); 
+            } elseif ($this->payrollType === 'regular') {
+                $query->where('is_overtime', false);
+            }
+        }])->get();
 
         return [
             'users' => $users,
             'daysInMonth' => $daysInMonth,
             'currentMonthName' => $currentMonthDate->translatedFormat('F Y'),
             'groups' => Group::all(),
-          'schedules' => \App\Models\Shift::all(),
+            'schedules' => Shift::all(),
         ];
     }
 }
