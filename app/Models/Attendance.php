@@ -15,6 +15,8 @@ class Attendance extends Model
         'attendance_date',
         'check_in',
         'check_out',
+        'break_start',
+        'break_end',
         'source',
         'status',
         'latitude',
@@ -27,6 +29,8 @@ class Attendance extends Model
     protected $casts = [
         'check_in' => 'datetime',
         'check_out' => 'datetime',
+        'break_start' => 'datetime',
+        'break_end' => 'datetime',
         'attendance_date' => 'date',
     ];
 
