@@ -2,141 +2,161 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\User;
-use App\Models\Group;
-use App\Models\Shift;
 use Filament\Pages\Page;
+use Livewire\Component;
+use App\Models\User;
+use App\Models\Attendance;
+use App\Models\Group;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
-use Livewire\Attributes\Url;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\TimesheetExport;
-use Illuminate\Support\Facades\Auth;
-use Filament\Notifications\Notification;
+
 
 class Timesheets extends Page
 {
+    // Habilita Livewire directamente
+    public static string $view = 'filament.pages.timesheets';
+
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
     protected static ?string $navigationLabel = 'Timesheets';
     protected static ?string $title = 'Timesheets';
     protected static ?string $navigationGroup = 'Asistencia';
-    protected static string $view = 'filament.pages.timesheets';
 
-    #[Url]
-    public $month = null;
+   
 
-    #[Url]
-    public $year = null;
-
-    #[Url]
+    // Propiedades de estado
+    public $month;
+    public $year;
     public $groupId = null;
-
-    #[Url]
     public $search = '';
 
-    #[Url]
-    public $scheduleId = null;
+    public array $days = [];
+    public array $usersData = [];
 
-    #[Url]
-    public $payrollType = 'all';
+    public bool $showModal = false;
+    public ?array $modalData = null;
 
     public function mount()
     {
-        $this->month ??= Carbon::now()->month;
-        $this->year ??= Carbon::now()->year;
+        $this->month = now()->month;
+        $this->year = now()->year;
+
+        $this->refreshData();
     }
 
-    public static function canAccess(): bool
+    /**
+     * Refresca los días y la lista de usuarios
+     */
+    public function refreshData()
     {
-        /** @var \App\Models\User|null $user */
-        $user = Auth::user();
-        return Auth::check() && $user && $user->hasRole('admin');
+        $this->generateDays();
+        $this->loadUsers();
+    }
+
+    public function generateDays()
+    {
+        $this->days = [];
+        $start = Carbon::create($this->year, $this->month, 1);
+        $end = $start->copy()->endOfMonth();
+
+        foreach (range(1, $end->day) as $day) {
+            $this->days[$day] = $start->copy()->day($day)->toDateString();
+        }
+    }
+
+    public function loadUsers()
+    {
+        $query = User::query();
+
+        if ($this->search) {
+            $query->where('name', 'like', "%{$this->search}%");
+        }
+
+        if ($this->groupId) {
+            $query->whereHas('groups', fn($q) => $q->where('groups.id', $this->groupId));
+        }
+
+        $users = $query->with(['attendances' => function ($q) {
+            $q->whereMonth('attendance_date', $this->month)
+              ->whereYear('attendance_date', $this->year);
+        }])->get();
+
+        $this->usersData = [];
+
+        foreach ($users as $user) {
+            $calendar = [];
+            foreach ($this->days as $day => $date) {
+                $attendance = $user->attendances->firstWhere('attendance_date', $date);
+
+                if (!$attendance) {
+                    $calendar[$date] = [
+                        'status' => 'none',
+                        'type' => null,
+                        'color' => 'bg-gray-100 dark:bg-gray-800',
+                        'minutes' => 0,
+                    ];
+                    continue;
+                }
+
+                $color = match (true) {
+                    $attendance->type === 'vacation' => 'bg-pink-500',
+                    $attendance->status === 'present' => 'bg-green-500',
+                    $attendance->status === 'late' => 'bg-yellow-400',
+                    $attendance->status === 'early_exit' => 'bg-blue-400',
+                    $attendance->status === 'incomplete' => 'bg-gray-400',
+                    $attendance->status === 'absent' => 'bg-red-500',
+                    default => 'bg-gray-200',
+                };
+
+                $minutes = 0;
+                if ($attendance->check_in && $attendance->check_out) {
+                    $minutes = $attendance->check_in->diffInMinutes($attendance->check_out);
+                }
+
+                $calendar[$date] = [
+                    'status' => $attendance->status,
+                    'type' => $attendance->type,
+                    'color' => $color,
+                    'minutes' => $minutes,
+                ];
+            }
+
+            $this->usersData[] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'calendar' => $calendar,
+                'totalMinutes' => array_sum(array_column($calendar, 'minutes')),
+            ];
+        }
+    }
+
+    public function updatedSearch() { $this->loadUsers(); }
+    public function updatedGroupId() { $this->loadUsers(); }
+
+    public function openAttendanceModal($userId, $date)
+    {
+        $attendance = Attendance::where('user_id', $userId)
+            ->whereDate('attendance_date', $date)
+            ->first();
+
+        $user = User::find($userId);
+
+        $this->modalData = [
+            'user' => $user?->name,
+            'date' => $date,
+            'status' => $attendance?->status ?? 'Sin registro',
+            'check_in' => $attendance?->check_in?->format('H:i') ?? '—',
+            'check_out' => $attendance?->check_out?->format('H:i') ?? '—',
+            'worked' => ($attendance?->check_in && $attendance?->check_out) 
+                        ? $attendance->check_in->diffInMinutes($attendance->check_out) : 0,
+        ];
+
+        $this->showModal = true;
     }
 
     public function changeMonth($direction)
     {
-        $date = Carbon::createFromDate($this->year, $this->month, 1)->addMonths($direction);
+        $date = Carbon::create($this->year, $this->month, 1)->addMonths($direction);
         $this->month = $date->month;
         $this->year = $date->year;
-    }
-
-    public function exportPdf()
-    {
-        $data = $this->getViewData();
-        $pdf = Pdf::loadView('pdf.timesheet-report', $data)->setPaper('a4', 'landscape');
-        
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, "Reporte_Asistencia_{$this->month}_{$this->year}.pdf");
-    }
-
-    public function exportExcel()
-    {
-        return Excel::download(
-            new TimesheetExport($this->month, $this->year, $this->groupId), 
-            "Planilla_Asistencia_{$this->month}_{$this->year}.xlsx"
-        );
-    }
-
-    /**
-     *  Maneja el clic en las celdas de la tabla
-     */
-    public function openAttendanceModal($userId, $date)
-    {
-        Notification::make()
-            ->title('Registro de Asistencia')
-            ->body("Abriendo detalles para el usuario ID: {$userId} en la fecha: {$date}")
-            ->info()
-            ->send();
-            
-        // Aquí puedes integrar un modal de Filament más adelante
-    }
-
-    protected function getViewData(): array
-    {
-        $currentMonthDate = Carbon::createFromDate($this->year, $this->month, 1);
-        
-        $daysInMonth = CarbonPeriod::create(
-            $currentMonthDate->copy()->startOfMonth(),
-            $currentMonthDate->copy()->endOfMonth()
-        );
-
-        $usersQuery = User::query();
-
-        if (!empty($this->search)) {
-            $usersQuery->where('name', 'like', "%{$this->search}%");
-        }
-
-        if ($this->groupId) {
-            $usersQuery->whereHas('groups', function ($q) {
-                $q->where('groups.id', $this->groupId);
-            });
-        }
-
-        if ($this->scheduleId) {
-            $usersQuery->whereHas('shifts', function ($q) { 
-                $q->where('id', $this->scheduleId);
-            });
-        }
-
-        $users = $usersQuery->with(['attendances' => function($query) {
-            $query->whereMonth('attendance_date', $this->month)
-                  ->whereYear('attendance_date', $this->year);
-            
-            if ($this->payrollType === 'overtime') {
-                $query->where('is_overtime', true); 
-            } elseif ($this->payrollType === 'regular') {
-                $query->where('is_overtime', false);
-            }
-        }])->get();
-
-        return [
-            'users' => $users,
-            'daysInMonth' => $daysInMonth,
-            'currentMonthName' => $currentMonthDate->translatedFormat('F Y'),
-            'groups' => Group::all(),
-            'schedules' => Shift::all(),
-        ];
+        $this->refreshData();
     }
 }

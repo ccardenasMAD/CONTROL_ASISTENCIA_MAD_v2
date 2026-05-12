@@ -21,6 +21,7 @@ class Attendance extends Model
         'longitude',
         'photo_path',
         'ip_address',
+        'type', 
     ];
 
     protected $casts = [
@@ -38,31 +39,28 @@ class Attendance extends Model
     {
         return $this->belongsTo(Group::class);
     }
-/**
-     * Formatea el tiempo trabajado como : "8h 30m"
-     */
+
     public function getFormattedDurationAttribute(): string
     {
-        $minutes = $this->duration_minutes;
-        if ($minutes === 0) return '0h 0m';
+        $minutes = $this->duration_minutes ?? 0;
+        if ($minutes === 0) {
+            return '0h 0m';
+        }
 
-        $hours = floor($minutes / 60);
+        $hours = intdiv($minutes, 60);
         $remainingMinutes = $minutes % 60;
 
         return "{$hours}h {$remainingMinutes}m";
     }
 
-    /**
-     * Determina el color del cuadrito según el estado.
-     
-     */
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
-            'present'    => 'bg-green-500', // Verde 
-            'late'       => 'bg-orange-400',// Naranja 
-            'absent'     => 'bg-red-500',   // Rojo 
-            'incomplete' => 'bg-gray-400',  // Gris
+            'present'    => 'bg-green-500',
+            'late'       => 'bg-orange-400',
+            'absent'     => 'bg-red-500',
+            'incomplete' => 'bg-gray-400',
+            'early_exit' => 'bg-blue-400',
             default      => 'bg-gray-200',
         };
     }
