@@ -145,7 +145,9 @@ class Timesheets extends Page
             'status' => $attendance?->status ?? 'Sin registro',
             'check_in' => $attendance?->check_in?->format('H:i') ?? '—',
             'check_out' => $attendance?->check_out?->format('H:i') ?? '—',
+            'attendance' => $attendance,
             'worked' => ($attendance?->check_in && $attendance?->check_out) 
+            
                         ? $attendance->check_in->diffInMinutes($attendance->check_out) : 0,
         ];
 

@@ -79,50 +79,71 @@
                 </tbody>
             </table>
         </div>
-
-        {{-- MODAL --}}
-        <x-filament::modal id="attendanceModal" width="md">
-            <x-slot name="heading">
-                Detalles de Asistencia
-            </x-slot>
-
-            @if($modalData)
-                <div class="space-y-3 p-2">
-                    <div class="text-lg font-bold border-b pb-2">{{ $modalData['user'] }}</div>
-
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                        <span class="text-gray-500">Fecha:</span>
-                        <span class="font-medium">
-                            {{ \Carbon\Carbon::parse($modalData['date'])->translatedFormat('d F Y') }}
-                        </span>
-
-                        <span class="text-gray-500">Estado:</span>
-                        <span class="font-medium uppercase">{{ $modalData['status'] }}</span>
-
-                        <span class="text-gray-500">Entrada:</span>
-                        <span class="font-medium">{{ $modalData['check_in'] ?? '—' }}</span>
-
-                        <span class="text-gray-500">Salida:</span>
-                        <span class="font-medium">{{ $modalData['check_out'] ?? '—' }}</span>
-
-                        <span class="text-gray-500 text-base font-bold mt-2">Total:</span>
-                        <span class="text-base font-bold mt-2">
-                            {{ intdiv($modalData['worked'], 60) }}h {{ $modalData['worked'] % 60 }}m
-                        </span>
-                    </div>
-                </div>
-            @endif
-
-            <x-slot name="footer">
-                <x-filament::button 
-                    color="gray" 
-                    x-on:click="$dispatch('close-modal', { id: 'attendanceModal' })"
-                    class="w-full"
-                >
-                    Cerrar
-                </x-filament::button>
-            </x-slot>
-        </x-filament::modal>
-
     </div>
+        
+        {{-- MODAL --}}
+<x-filament::modal id="attendanceModal" width="md">
+    <x-slot name="heading">
+        Detalles de Asistencia
+    </x-slot>
+
+    @if($modalData)
+        @php
+            $status = $modalData['status'];
+            $attendance = $modalData['attendance'];
+
+            $checkIn  = $attendance?->check_in?->format('H:i') ?? '—';
+            $checkOut = $attendance?->check_out?->format('H:i') ?? '—';
+            $breakStart = $attendance?->break_start?->format('H:i') ?? '—';
+            $breakEnd   = $attendance?->break_end?->format('H:i') ?? '—';
+
+            // Cálculo de horas trabajadas
+            $workedMinutes = $modalData['worked'] ?? 0;
+            $workedHours = intdiv($workedMinutes, 60);
+            $workedRemainder = $workedMinutes % 60;
+        @endphp
+
+        <div class="space-y-3 p-2">
+            <div class="text-lg font-bold border-b pb-2">{{ $modalData['user'] }}</div>
+
+            <div class="grid grid-cols-2 gap-2 text-sm">
+
+                <span class="text-gray-500">Fecha:</span>
+                <span class="font-medium">
+                    {{ \Carbon\Carbon::parse($modalData['date'])->translatedFormat('d F Y') }}
+                </span>
+
+                <span class="text-gray-500">Estado:</span>
+                <span class="font-medium uppercase">{{ $status }}</span>
+
+                <span class="text-gray-500">Entrada:</span>
+                <span class="font-medium">{{ $checkIn }}</span>
+
+                <span class="text-gray-500">Salida:</span>
+                <span class="font-medium">{{ $checkOut }}</span>
+
+                <span class="text-gray-500">Break inicio:</span>
+                <span class="font-medium">{{ $breakStart }}</span>
+
+                <span class="text-gray-500">Break fin:</span>
+                <span class="font-medium">{{ $breakEnd }}</span>
+
+                <span class="text-gray-500 text-base font-bold mt-2">Total:</span>
+                <span class="text-base font-bold mt-2">
+                    {{ $workedHours }}h {{ $workedRemainder }}m
+                </span>
+            </div>
+        </div>
+    @endif
+
+    <x-slot name="footer">
+        <x-filament::button 
+            color="gray" 
+            x-on:click="$dispatch('close-modal', { id: 'attendanceModal' })"
+            class="w-full"
+        >
+            Cerrar
+        </x-filament::button>
+    </x-slot>
+</x-filament::modal>
 </x-filament-panels::page>

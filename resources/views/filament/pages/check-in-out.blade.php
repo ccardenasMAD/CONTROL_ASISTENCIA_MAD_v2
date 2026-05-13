@@ -70,10 +70,16 @@
             </div>
         </div>
 
-        {{-- Acción principal --}}
+        {{-- Acción principal (DINÁMICA) --}}
         <div class="flex justify-center">
 
-            @if($dayStatus === 'vacation')
+            @php
+                $status = auth()->user()->getDailyStatus();
+                $button = auth()->user()->getActionButton();
+            @endphp
+
+            {{-- VACACIONES --}}
+            @if($status === 'VACATION')
                 <div class="text-center">
                     <div class="text-lg font-semibold text-pink-600 dark:text-pink-400">
                         Día marcado como vacaciones
@@ -83,30 +89,71 @@
                     </div>
                 </div>
 
-            @elseif(!$attendance)
-                <x-filament::button 
-                    wire:click="checkIn" 
-                    size="xl"
-                    class="px-10 py-4 text-base font-semibold
-                           bg-emerald-600 text-white 
-                           hover:bg-emerald-700 
-                           dark:bg-emerald-500 dark:hover:bg-emerald-600
-                           transition rounded-xl shadow-sm">
-                    ⏰ Marcar entrada
-                </x-filament::button>
+            {{-- CHECK-IN --}}
+            @elseif($button === 'CHECK_IN')
+                <form method="POST" action="{{ route('attendance.checkin') }}">
+                    @csrf
+                    <x-filament::button 
+                        size="xl"
+                        class="px-10 py-4 text-base font-semibold
+                               bg-emerald-600 text-white 
+                               hover:bg-emerald-700 
+                               dark:bg-emerald-500 dark:hover:bg-emerald-600
+                               transition rounded-xl shadow-sm">
+                        ⏰ Marcar entrada
+                    </x-filament::button>
+                </form>
 
-            @elseif(!$attendance->check_out)
-                <x-filament::button 
-                    wire:click="checkOut" 
-                    size="xl"
-                    class="px-10 py-4 text-base font-semibold
-                           bg-slate-800 text-white 
-                           hover:bg-black 
-                           dark:bg-slate-200 dark:text-black dark:hover:bg-white
-                           transition rounded-xl shadow-sm">
-                    🚪 Marcar salida
-                </x-filament::button>
+            {{-- BREAK + CHECK-OUT --}}
+            @elseif($button === 'BREAK_OR_CHECK_OUT')
+                <div class="flex gap-3">
 
+                    {{-- Break --}}
+                    <form method="POST" action="{{ route('attendance.breakstart') }}">
+                        @csrf
+                        <x-filament::button 
+                            size="xl"
+                            class="px-10 py-4 text-base font-semibold
+                                   bg-yellow-500 text-white 
+                                   hover:bg-yellow-600 
+                                   dark:bg-yellow-400 dark:hover:bg-yellow-500
+                                   transition rounded-xl shadow-sm">
+                            ☕ Break
+                        </x-filament::button>
+                    </form>
+
+                    {{-- Check-out --}}
+                    <form method="POST" action="{{ route('attendance.checkout') }}">
+                        @csrf
+                        <x-filament::button 
+                            size="xl"
+                            class="px-10 py-4 text-base font-semibold
+                                   bg-slate-800 text-white 
+                                   hover:bg-black 
+                                   dark:bg-slate-200 dark:text-black dark:hover:bg-white
+                                   transition rounded-xl shadow-sm">
+                            🚪 Marcar salida
+                        </x-filament::button>
+                    </form>
+
+                </div>
+
+            {{-- RETURN --}}
+            @elseif($button === 'RETURN')
+                <form method="POST" action="{{ route('attendance.breakend') }}">
+                    @csrf
+                    <x-filament::button 
+                        size="xl"
+                        class="px-10 py-4 text-base font-semibold
+                               bg-blue-600 text-white 
+                               hover:bg-blue-700 
+                               dark:bg-blue-500 dark:hover:bg-blue-600
+                               transition rounded-xl shadow-sm">
+                        🔙 Volver del break
+                    </x-filament::button>
+                </form>
+
+            {{-- ASISTENCIA COMPLETADA --}}
             @else
                 <div class="text-center">
                     <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
