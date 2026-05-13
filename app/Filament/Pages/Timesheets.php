@@ -106,10 +106,8 @@ class Timesheets extends Page
                     default => 'bg-gray-200',
                 };
 
-                $minutes = 0;
-                if ($attendance->check_in && $attendance->check_out) {
-                    $minutes = $attendance->check_in->diffInMinutes($attendance->check_out);
-                }
+                $minutes = $attendance?->getWorkedMinutes() ?? 0;
+
 
                 $calendar[$date] = [
                     'status' => $attendance->status,
