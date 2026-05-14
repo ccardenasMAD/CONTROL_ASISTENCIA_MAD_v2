@@ -7,6 +7,9 @@ use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
 use App\Filament\Widgets\MyMonthlyAttendance;
 use App\Filament\Widgets\WeeklyProductivityChart;
+use App\Filament\Widgets\MonthlyProductivityChart;
+use App\Filament\Widgets\MonthlyProductivityOverview;
+
 
 class Dashboard extends BaseDashboard
 {
@@ -26,6 +29,10 @@ class Dashboard extends BaseDashboard
     public function getFooterWidgets(): array
     {
         return [
+        \App\Filament\Widgets\WeeklyProductivityChart::class,
+        \App\Filament\Widgets\MonthlyProductivityChart::class,
+        \App\Filament\Widgets\MonthlyProductivityOverview::class,
+
       
          //\App\Filament\Widgets\TodayAttendance::class,
         // \App\Filament\Widgets\TodayAbsent::class,
