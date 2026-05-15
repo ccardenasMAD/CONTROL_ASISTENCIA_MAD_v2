@@ -3,16 +3,12 @@
 namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
-use Livewire\Component;
 use App\Models\User;
 use App\Models\Attendance;
-use App\Models\Group;
 use Carbon\Carbon;
-
 
 class Timesheets extends Page
 {
-    // Habilita Livewire directamente
     public static string $view = 'filament.pages.timesheets';
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
@@ -20,9 +16,6 @@ class Timesheets extends Page
     protected static ?string $title = 'Timesheets';
     protected static ?string $navigationGroup = 'Asistencia';
 
-   
-
-    // Propiedades de estado
     public $month;
     public $year;
     public $groupId = null;
@@ -42,26 +35,50 @@ class Timesheets extends Page
         $this->refreshData();
     }
 
-    /**
-     * Refresca los días y la lista de usuarios
-     */
     public function refreshData()
     {
         $this->generateDays();
         $this->loadUsers();
     }
 
+    /**
+     * Navega al mes anterior
+     */
+    public function previousMonth(): void
+    {
+        $this->changeMonth(-1);
+    }
+
+    /**
+     * Navega al mes siguiente
+     */
+    public function nextMonth(): void
+    {
+        $this->changeMonth(1);
+    }
+
+    /**
+     * Genera días con día de la semana
+     */
     public function generateDays()
     {
         $this->days = [];
+
         $start = Carbon::create($this->year, $this->month, 1);
         $end = $start->copy()->endOfMonth();
 
-        foreach (range(1, $end->day) as $day) {
-            $this->days[$day] = $start->copy()->day($day)->toDateString();
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $this->days[$date->day] = [
+                'date' => $date->toDateString(),
+                'weekday' => $date->translatedFormat('D'),
+                'weekday_full' => $date->translatedFormat('l'),
+            ];
         }
     }
 
+    /**
+     * Carga usuarios y su calendario
+     */
     public function loadUsers()
     {
         $query = User::query();
@@ -74,17 +91,23 @@ class Timesheets extends Page
             $query->whereHas('groups', fn($q) => $q->where('groups.id', $this->groupId));
         }
 
-        $users = $query->with(['attendances' => function ($q) {
-            $q->whereMonth('attendance_date', $this->month)
-              ->whereYear('attendance_date', $this->year);
-        }])->get();
+        $users = $query->with([
+            'attendances' => function ($q) {
+                $q->whereMonth('attendance_date', $this->month)
+                    ->whereYear('attendance_date', $this->year);
+            }
+        ])->get();
 
         $this->usersData = [];
 
         foreach ($users as $user) {
             $calendar = [];
-            foreach ($this->days as $day => $date) {
-                $attendance = $user->attendances->firstWhere('attendance_date', $date);
+
+            foreach ($this->days as $day => $info) {
+                $date = $info['date'];
+
+                $attendance = $user->attendances
+                    ->firstWhere('attendance_date', $date);
 
                 if (!$attendance) {
                     $calendar[$date] = [
@@ -93,6 +116,7 @@ class Timesheets extends Page
                         'color' => 'bg-gray-100 dark:bg-gray-800',
                         'minutes' => 0,
                     ];
+
                     continue;
                 }
 
@@ -107,7 +131,6 @@ class Timesheets extends Page
                 };
 
                 $minutes = $attendance?->getWorkedMinutes() ?? 0;
-
 
                 $calendar[$date] = [
                     'status' => $attendance->status,
@@ -126,8 +149,15 @@ class Timesheets extends Page
         }
     }
 
-    public function updatedSearch() { $this->loadUsers(); }
-    public function updatedGroupId() { $this->loadUsers(); }
+    public function updatedSearch()
+    {
+        $this->loadUsers();
+    }
+
+    public function updatedGroupId()
+    {
+        $this->loadUsers();
+    }
 
     public function openAttendanceModal($userId, $date)
     {
@@ -144,9 +174,9 @@ class Timesheets extends Page
             'check_in' => $attendance?->check_in?->format('H:i') ?? '—',
             'check_out' => $attendance?->check_out?->format('H:i') ?? '—',
             'attendance' => $attendance,
-            'worked' => ($attendance?->check_in && $attendance?->check_out) 
-            
-                        ? $attendance->check_in->diffInMinutes($attendance->check_out) : 0,
+            'worked' => ($attendance?->check_in && $attendance?->check_out)
+                ? $attendance->check_in->diffInMinutes($attendance->check_out)
+                : 0,
         ];
 
         $this->showModal = true;
@@ -154,9 +184,12 @@ class Timesheets extends Page
 
     public function changeMonth($direction)
     {
-        $date = Carbon::create($this->year, $this->month, 1)->addMonths($direction);
+        $date = Carbon::create($this->year, $this->month, 1)
+            ->addMonths($direction);
+
         $this->month = $date->month;
         $this->year = $date->year;
+
         $this->refreshData();
     }
 }

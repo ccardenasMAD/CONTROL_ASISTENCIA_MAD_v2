@@ -52,6 +52,7 @@ class AdminPanelProvider extends PanelProvider
             
             ->pages([
                 \App\Filament\Pages\Dashboard::class,
+                \App\Filament\Pages\Timesheets::class,
             ])
             ->middleware([
                 EncryptCookies::class,

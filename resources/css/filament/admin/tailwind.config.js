@@ -10,4 +10,12 @@ export default {
         './resources/views/filament/widgets/*.blade.php',
         './resources/views/filament/pages/*.blade.php',
     ],
+
+    theme: {
+        extend: {
+            fontFamily: {
+                sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+            },
+        },
+    },
 }

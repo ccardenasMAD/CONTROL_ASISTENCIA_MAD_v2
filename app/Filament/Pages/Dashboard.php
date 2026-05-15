@@ -31,7 +31,7 @@ class Dashboard extends BaseDashboard
         return [
         \App\Filament\Widgets\WeeklyProductivityChart::class,
         \App\Filament\Widgets\MonthlyProductivityChart::class,
-        \App\Filament\Widgets\MonthlyProductivityOverview::class,
+        //\App\Filament\Widgets\MonthlyProductivityOverview::class,
 
       
          //\App\Filament\Widgets\TodayAttendance::class,
