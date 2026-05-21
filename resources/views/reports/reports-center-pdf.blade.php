@@ -68,19 +68,19 @@
             <th>Fecha</th>
             <th>Usuario</th>
             <th>Grupo</th>
-            <th>Entrada</th>
-            <th>Salida</th>
+            <th>Evento</th>
+            <th>Hora</th>
             <th>Estado</th>
         </tr>
     </thead>
     <tbody>
         @foreach ($records as $attendance)
             <tr>
-                <td>{{ $attendance->attendance_date->format('d/m/Y') }}</td>
+                <td>{{ $attendance->date->format('d/m/Y') }}</td>
                 <td>{{ $attendance->user->name }}</td>
                 <td>{{ $attendance->group->name }}</td>
-                <td>{{ optional($attendance->check_in)->format('H:i') ?? '—' }}</td>
-                <td>{{ optional($attendance->check_out)->format('H:i') ?? '—' }}</td>
+                <td>{{ $attendance->type === 'in' ? 'Entrada' : ($attendance->type === 'out' ? 'Salida' : '—') }}</td>
+                <td>{{ $attendance->time ? substr($attendance->time, 0, 5) : '—' }}</td>
                 <td>{{ formatStatus($attendance->status) }}</td>
             </tr>
         @endforeach

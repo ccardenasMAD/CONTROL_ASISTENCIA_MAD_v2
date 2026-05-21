@@ -34,14 +34,14 @@ class TodayAttendancePie extends ChartWidget
         // ✅ Presentes: usuarios válidos con asistencia hoy
         $presentUsers = (clone $validUsersQuery)
             ->whereHas('attendances', fn ($q) =>
-                $q->whereDate('attendance_date', $today)
+                $q->whereDate('date', $today)
             )
             ->count();
 
         // ✅ Ausentes: usuarios válidos sin asistencia hoy
         $absentUsers = (clone $validUsersQuery)
             ->whereDoesntHave('attendances', fn ($q) =>
-                $q->whereDate('attendance_date', $today)
+                $q->whereDate('date', $today)
             )
             ->count();
 

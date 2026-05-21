@@ -13,47 +13,18 @@ return new class extends Migration
     {
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
-
-            // Usuario que registra la asistencia
-            $table->foreignId('user_id')
-                ->constrained()
-                ->cascadeOnDelete();
-
-            // Grupo al momento del marcaje (MUY importante)
-            $table->foreignId('group_id')
-                ->constrained()
-                ->cascadeOnDelete();
-
-            // Fecha lógica de la asistencia
-            $table->date('attendance_date');
-
-            // Marcajes
-            $table->timestamp('check_in')->nullable();
-            $table->timestamp('check_out')->nullable();
-
-            // Origen del registro
-            $table->enum('source', [
-                'manual',
-                'mobile',
-                'biometric',
-                'system',
-            ])->default('system');
-
-            // Estado calculado (se llenará luego)
-            $table->enum('status', [
-                'present',
-                'absent',
-                'late',
-                'early_exit',
-                'incomplete',
-            ])->nullable();
-
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('group_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->date('date');
+            $table->time('time');
+            $table->enum('type', ['in', 'out']);
+            $table->enum('source', ['web','mobile','biometric','system','manual',])->default('system');
+            $table->foreignId('edited_by')->nullable()->constrained('users');
+            $table->enum('status', ['normal','late','early_exit','incomplete',])->nullable();
             $table->timestamps();
-
-            $table->unique(
-                ['user_id', 'attendance_date'],
-                'user_attendance_unique'
-            );
+            $table->index(['user_id', 'date']);
+            $table->index(['group_id', 'date']);
+            $table->index(['type']);
         });
     }
 

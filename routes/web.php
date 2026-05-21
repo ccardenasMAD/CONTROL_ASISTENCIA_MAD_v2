@@ -38,7 +38,7 @@ Route::get('/reports/pdf', function (ReportsCenterPdfService $pdfService) {
     $query = Attendance::query()
         ->select('attendances.*')
         ->with(['user', 'group'])
-        ->whereBetween('attendance_date', [$start, $end]);
+        ->whereBetween('date', [$start, $end]);
 
     if ($userId) {
         $query->where('user_id', $userId);
@@ -57,7 +57,7 @@ Route::get('/reports/pdf', function (ReportsCenterPdfService $pdfService) {
             ->join('users', 'users.id', '=', 'attendances.user_id')
             ->orderBy('users.name'),
 
-        'date'  => $query->orderBy('attendance_date'),
+        'date'  => $query->orderBy('date'),
     };
 
     $records = $query->get();

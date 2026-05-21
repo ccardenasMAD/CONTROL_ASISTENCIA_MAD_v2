@@ -24,7 +24,7 @@ class TodayAttendanceStats extends StatsOverviewWidget
 
         // Usuarios que marcaron hoy
         $markedToday = Attendance::query()
-            ->whereDate('attendance_date', $today)
+            ->whereDate('date', $today)
             ->distinct('user_id')
             ->count('user_id');
 

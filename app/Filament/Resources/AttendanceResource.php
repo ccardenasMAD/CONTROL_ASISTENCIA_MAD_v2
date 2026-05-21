@@ -56,6 +56,7 @@ class AttendanceResource extends Resource
                         ->searchable()
                         ->required(),
 
+<<<<<<< HEAD
                     Forms\Components\DatePicker::make('attendance_date')
                         ->label('Fecha')
                         ->default(now())
@@ -71,6 +72,23 @@ class AttendanceResource extends Resource
 
                     Forms\Components\DateTimePicker::make('check_out')
                         ->label('Salida'),
+=======
+            Forms\Components\DatePicker::make('date')
+                ->label('Fecha')
+                ->required(),
+
+            Forms\Components\TimePicker::make('time')
+                ->label('Hora')
+                ->required(),
+
+            Forms\Components\Select::make('type')
+                ->label('Tipo')
+                ->options([
+                    'in' => 'Entrada',
+                    'out' => 'Salida',
+                ])
+                ->required(),
+>>>>>>> main
 
                     Forms\Components\Select::make('source')
                         ->label('Origen del Registro')
@@ -102,6 +120,13 @@ class AttendanceResource extends Resource
     {
         return $table
             ->columns([
+<<<<<<< HEAD
+=======
+                Tables\Columns\TextColumn::make('date')
+                    ->label('Fecha')
+                    ->date(),
+
+>>>>>>> main
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Empleado')
                     ->description(fn ($record) => "Sede: {$record->group->name}")
@@ -112,6 +137,7 @@ class AttendanceResource extends Resource
                     ->date('d/m/Y')
                     ->sortable(),
 
+<<<<<<< HEAD
                 Tables\Columns\TextColumn::make('check_in')
                     ->label('Entrada')
                     ->dateTime('H:i')
@@ -137,6 +163,19 @@ class AttendanceResource extends Resource
                     ->url(fn ($record) => $record->latitude 
                         ? "https://www.google.com/maps/search/?api=1&query={$record->latitude},{$record->longitude}" 
                         : null, true),
+=======
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Evento')
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'in' => 'Entrada',
+                        'out' => 'Salida',
+                        default => $state,
+                    }),
+
+                Tables\Columns\TextColumn::make('time')
+                    ->label('Hora')
+                    ->formatStateUsing(fn (?string $state) => $state ? substr($state, 0, 5) : '—'),
+>>>>>>> main
 
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')

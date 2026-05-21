@@ -19,13 +19,13 @@ class TodayAbsent extends BaseWidget
     {
         // IDs de usuarios que ya marcaron hoy
         $usersWithAttendanceToday = Attendance::query()
-            ->whereDate('attendance_date', now()->toDateString())
+            ->whereDate('date', now()->toDateString())
             ->pluck('user_id');
 
         return User::query()
             // Usuarios activos (ajusta si tienes columna is_active)
             ->whereDoesntHave('attendances', function ($query) {
-                $query->whereDate('attendance_date', now()->toDateString());
+                $query->whereDate('date', now()->toDateString());
             })
             // Excluir usuarios sin grupo (configuración inválida)
             ->whereHas('groups')

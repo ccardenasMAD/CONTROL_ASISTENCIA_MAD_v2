@@ -73,6 +73,7 @@
         {{-- Acción principal (DINÁMICA) --}}
         <div class="flex justify-center">
 
+<<<<<<< HEAD
             @php
                 $status = auth()->user()->getDailyStatus();
                 $button = auth()->user()->getActionButton();
@@ -88,6 +89,31 @@
                         No puedes marcar asistencia en un día de vacaciones.
                     </div>
                 </div>
+=======
+            @if($actionType === 'in')
+                <x-filament::button 
+                    wire:click="checkIn" 
+                    size="xl"
+                    class="px-10 py-4 text-base font-semibold
+                           bg-black text-white 
+                           hover:bg-gray-800 
+                           dark:bg-white dark:text-black dark:hover:bg-gray-200
+                           transition rounded-xl shadow-sm">
+                    {{ $actionLabel }}
+                </x-filament::button>
+
+            @elseif($actionType === 'out')
+                <x-filament::button 
+                    wire:click="checkOut" 
+                    size="xl"
+                    class="px-10 py-4 text-base font-semibold
+                           bg-gray-900 text-white 
+                           hover:bg-black 
+                           dark:bg-gray-100 dark:text-black dark:hover:bg-white
+                           transition rounded-xl shadow-sm">
+                    {{ $actionLabel }}
+                </x-filament::button>
+>>>>>>> main
 
             {{-- CHECK-IN --}}
             @elseif($button === 'CHECK_IN')
@@ -157,10 +183,14 @@
             @else
                 <div class="text-center">
                     <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        ✔ Asistencia completada
+                        ✔ Asistencia registrada
                     </div>
                     <div class="text-sm text-gray-500 mt-1">
+<<<<<<< HEAD
                         Ya registraste entrada y salida hoy.
+=======
+                        Estado actual: {{ $stateLabel ?? '—' }}
+>>>>>>> main
                     </div>
                 </div>
             @endif
