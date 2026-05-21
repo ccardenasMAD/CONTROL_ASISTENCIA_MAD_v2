@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TodayAttendance extends BaseWidget
 {
+    protected static bool $isDiscovered = false;
     protected static ?string $heading = 'Asistencia de Hoy';
 
     protected int | string | array $columnSpan = 'full';

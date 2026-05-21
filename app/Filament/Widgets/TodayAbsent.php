@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TodayAbsent extends BaseWidget
 {
+    protected static bool $isDiscovered = false;
     protected static ?string $heading = 'Personas sin marcar hoy';
 
     protected int | string | array $columnSpan = 'full';

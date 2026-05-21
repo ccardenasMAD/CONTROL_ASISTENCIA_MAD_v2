@@ -5,39 +5,30 @@ use App\Models\Attendance;
 use App\Services\ReportsCenterPdfService;
 use App\Http\Controllers\AttendanceController;
 
-
 Route::get('/', function () {
     return view('welcome');
 });
 
-
-
-
-
 Route::middleware(['auth'])->group(function () {
-
     Route::post('/attendance/check-in', [AttendanceController::class, 'checkIn'])
         ->name('attendance.checkin');
 
     Route::post('/attendance/break-start', [AttendanceController::class, 'breakStart'])
-        ->name('attendance.breakstart');
+        ->name('attendance.break_start');
 
     Route::post('/attendance/break-end', [AttendanceController::class, 'breakEnd'])
-        ->name('attendance.breakend');
+        ->name('attendance.break_end');
 
     Route::post('/attendance/check-out', [AttendanceController::class, 'checkOut'])
         ->name('attendance.checkout');
 });
-
 
 /*
 |--------------------------------------------------------------------------
 | Reportes PDF
 |--------------------------------------------------------------------------
 */
-
 Route::get('/reports/pdf', function (ReportsCenterPdfService $pdfService) {
-
     $start   = request('start');
     $end     = request('end');
     $userId  = request('user_id');
@@ -79,5 +70,4 @@ Route::get('/reports/pdf', function (ReportsCenterPdfService $pdfService) {
             'group' => optional($records->first()?->group)->name,
         ])
         ->download('reporte-asistencia.pdf');
-
 })->middleware('auth')->name('reports.pdf');

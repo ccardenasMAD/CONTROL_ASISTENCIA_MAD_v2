@@ -8,6 +8,7 @@ use App\Models\Attendance;
 
 class TodayAttendancePie extends ChartWidget
 {
+    protected static bool $isDiscovered = false;
     protected static ?string $heading = 'Asistencia de Hoy';
 
     protected int | string | array $columnSpan = 1;

@@ -24,6 +24,7 @@ class Attendance extends Model
         'break_end',
         'source',
         'status',
+
         'check_in_lat',
         'check_in_lng',
         'check_out_lat',
@@ -89,18 +90,15 @@ class Attendance extends Model
 
   
 
-    public function getWorkedMinutes(): int
+   public function getWorkedMinutes(): int
     {
         if (!$this->check_in) {
             return 0;
         }
 
-        // Si no hay check-out, usamos la hora actual
         $end = $this->check_out ?? now();
-
         $worked = $this->check_in->diffInMinutes($end);
 
-        // Descontar break si existe
         if ($this->break_start) {
             $breakEnd = $this->break_end ?? now();
             $worked -= $this->break_start->diffInMinutes($breakEnd);

@@ -74,15 +74,16 @@ use Illuminate\Support\Facades\Auth;
 
 class WeeklyProductivityChart extends ChartWidget
 {
-    // Puedes dejarlo null si usas getHeading()
+     
+    protected static bool $isDiscovered = false;
     protected static ?string $heading = null;
 
     public function getHeading(): string
     {
         $userId = Auth::id();
 
-        $start = now()->startOfWeek();          // lunes
-        $end   = now()->startOfWeek()->addDays(3); // jueves
+        $start = now()->startOfWeek();         
+        $end   = now()->startOfWeek()->addDays(3); 
 
         $records = Attendance::where('user_id', $userId)
             ->whereBetween('attendance_date', [

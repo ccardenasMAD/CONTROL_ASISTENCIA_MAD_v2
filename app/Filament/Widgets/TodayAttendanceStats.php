@@ -9,6 +9,7 @@ use App\Models\Attendance;
 
 class TodayAttendanceStats extends StatsOverviewWidget
 {
+    protected static bool $isDiscovered = false;
     protected function getStats(): array
     {
         $today = now()->toDateString();

@@ -72,6 +72,11 @@ class CheckInOut extends Page
 
     protected function hydrateDayState(): void
     {
+
+        $this->attendance = Attendance::where('user_id', Auth::id())
+        ->whereDate('attendance_date', Carbon::today())
+        ->first();
+
         if (! $this->attendance) {
             $this->dayStatus = 'no_record';
             $this->dayStatusLabel = 'Sin registro hoy';
@@ -184,6 +189,8 @@ class CheckInOut extends Page
 
         $this->attendance->refresh();
         $this->hydrateDayState();
+
+        $this->dispatch('attendance-updated')->to('*');
 
         Notification::make()
             ->title('Salida registrada correctamente.')

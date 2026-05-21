@@ -9,12 +9,15 @@ use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
+    /**
+     * CHECK-IN
+     */
     public function checkIn(Request $request)
     {
         $userId = Auth::id();
         $today = now()->toDateString();
 
-        return DB::transaction(function () use ($userId, $today) {
+        return DB::transaction(function () use ($userId, $today, $request) {
 
             $attendance = Attendance::where('user_id', $userId)
                 ->where('attendance_date', $today)
@@ -31,14 +34,22 @@ class AttendanceController extends Controller
                 ],
                 [
                     'check_in' => now(),
+                    'check_in_lat' => $request->lat,
+                    'check_in_lng' => $request->lng,
                     'source' => 'web',
+                    'ip_address' => $request->ip(),
                 ]
             );
+
+            event('attendance-updated');
 
             return back()->with('success', 'Check-in registrado correctamente.');
         });
     }
 
+    /**
+     * BREAK START
+     */
     public function breakStart()
     {
         $userId = Auth::id();
@@ -67,10 +78,15 @@ class AttendanceController extends Controller
                 'break_end' => null,
             ]);
 
+            event('attendance-updated');
+
             return back()->with('success', 'Break iniciado correctamente.');
         });
     }
 
+    /**
+     * BREAK END
+     */
     public function breakEnd()
     {
         $userId = Auth::id();
@@ -98,16 +114,21 @@ class AttendanceController extends Controller
                 'break_end' => now(),
             ]);
 
+            event('attendance-updated');
+
             return back()->with('success', 'Break finalizado correctamente.');
         });
     }
 
-    public function checkOut()
+    /**
+     * CHECK-OUT
+     */
+    public function checkOut(Request $request)
     {
         $userId = Auth::id();
         $today = now()->toDateString();
 
-        return DB::transaction(function () use ($userId, $today) {
+        return DB::transaction(function () use ($userId, $today, $request) {
 
             $attendance = Attendance::where('user_id', $userId)
                 ->where('attendance_date', $today)
@@ -127,7 +148,12 @@ class AttendanceController extends Controller
 
             $attendance->update([
                 'check_out' => now(),
+                'check_out_lat' => $request->lat,
+                'check_out_lng' => $request->lng,
+                'ip_address' => $request->ip(),
             ]);
+
+            event('attendance-updated');
 
             return back()->with('success', 'Check-out registrado correctamente.');
         });

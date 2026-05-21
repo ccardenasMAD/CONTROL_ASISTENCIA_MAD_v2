@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TodayGroupShifts extends BaseWidget
 {
+    protected static bool $isDiscovered = false;
     protected static ?string $heading = 'Turnos por grupo ';
 
     protected int | string | array $columnSpan = '1';

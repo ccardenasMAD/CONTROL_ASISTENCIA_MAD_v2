@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Services\TimesheetsServices\TimesheetEngine;
+use App\Services\TimesheetsServices\TimesheetPresenter;
 use Filament\Pages\Page;
 use App\Models\User;
 use App\Models\Attendance;
@@ -41,25 +43,16 @@ class Timesheets extends Page
         $this->loadUsers();
     }
 
-    /**
-     * Navega al mes anterior
-     */
     public function previousMonth(): void
     {
         $this->changeMonth(-1);
     }
 
-    /**
-     * Navega al mes siguiente
-     */
     public function nextMonth(): void
     {
         $this->changeMonth(1);
     }
 
-    /**
-     * Genera días con día de la semana
-     */
     public function generateDays()
     {
         $this->days = [];
@@ -76,9 +69,6 @@ class Timesheets extends Page
         }
     }
 
-    /**
-     * Carga usuarios y su calendario
-     */
     public function loadUsers()
     {
         $query = User::query();
@@ -103,40 +93,22 @@ class Timesheets extends Page
         foreach ($users as $user) {
             $calendar = [];
 
+            $engine = new TimesheetEngine();
+            $presenter = new TimesheetPresenter();
+
             foreach ($this->days as $day => $info) {
-                $date = $info['date'];
+                $date = Carbon::parse($info['date']);
 
                 $attendance = $user->attendances
-                    ->firstWhere('attendance_date', $date);
+                    ->first(fn($a) => $a->attendance_date->isSameDay($date));
 
-                if (!$attendance) {
-                    $calendar[$date] = [
-                        'status' => 'none',
-                        'type' => null,
-                        'color' => 'bg-gray-100 dark:bg-gray-800',
-                        'minutes' => 0,
-                    ];
+                $result = $engine->resolve($date, $attendance);
 
-                    continue;
-                }
-
-                $color = match (true) {
-                    $attendance->type === 'vacation' => 'bg-pink-500',
-                    $attendance->status === 'present' => 'bg-green-500',
-                    $attendance->status === 'late' => 'bg-yellow-400',
-                    $attendance->status === 'early_exit' => 'bg-blue-400',
-                    $attendance->status === 'incomplete' => 'bg-gray-400',
-                    $attendance->status === 'absent' => 'bg-red-500',
-                    default => 'bg-gray-200',
-                };
-
-                $minutes = $attendance?->getWorkedMinutes() ?? 0;
-
-                $calendar[$date] = [
-                    'status' => $attendance->status,
-                    'type' => $attendance->type,
-                    'color' => $color,
-                    'minutes' => $minutes,
+                $calendar[$date->toDateString()] = [
+                    'status' => $result['state']->value,
+                    'type' => null,
+                    'color' => $presenter->color($result['state']),
+                    'minutes' => $result['minutes'],
                 ];
             }
 
@@ -159,8 +131,33 @@ class Timesheets extends Page
         $this->loadUsers();
     }
 
+   
     public function openAttendanceModal($userId, $date)
     {
+        $carbonDate = Carbon::parse($date);
+
+    
+        if ($carbonDate->dayOfWeekIso >= 5) {
+
+            $user = User::find($userId);
+
+            $this->modalData = [
+                'user' => $user?->name,
+                'date' => $carbonDate->format('d M Y'),
+                'status' => 'Día no laboral',
+                'check_in' => '—',
+                'check_out' => '—',
+                'break_start' => '—',
+                'break_end' => '—',
+                'worked' => 0,
+
+            ];
+
+            $this->showModal = true;
+            return;
+        }
+
+        // Día laboral → buscar asistencia real
         $attendance = Attendance::where('user_id', $userId)
             ->whereDate('attendance_date', $date)
             ->first();
@@ -169,11 +166,12 @@ class Timesheets extends Page
 
         $this->modalData = [
             'user' => $user?->name,
-            'date' => $date,
+            'date' => $carbonDate->format('d M Y'),
             'status' => $attendance?->status ?? 'Sin registro',
             'check_in' => $attendance?->check_in?->format('H:i') ?? '—',
             'check_out' => $attendance?->check_out?->format('H:i') ?? '—',
-            'attendance' => $attendance,
+            'break_start' => $attendance?->break_start?->format('H:i') ?? '—',
+            'break_end' => $attendance?->break_end?->format('H:i') ?? '—',
             'worked' => ($attendance?->check_in && $attendance?->check_out)
                 ? $attendance->check_in->diffInMinutes($attendance->check_out)
                 : 0,

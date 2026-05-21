@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Auth;
 
 class MonthlyProductivityOverview extends Widget
 {
+    protected static bool $isDiscovered = false;
     protected static string $view = 'filament.widgets.monthly-productivity-overview';
-
     protected int|string|array $columnSpan = 'full';
-
+    protected $listeners = ['attendance-updated' => '$refresh'];
     public function getViewData(): array
     {
         $userId = Auth::id();

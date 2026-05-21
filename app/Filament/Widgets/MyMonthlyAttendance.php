@@ -8,12 +8,14 @@ use Illuminate\Support\Facades\Auth;
 
 class MyMonthlyAttendance extends Widget
 {
+    protected static bool $isDiscovered = false;
     protected static string $view = 'filament.widgets.my-monthly-attendance';
-
     protected static ?string $heading = 'Mi asistencia del mes';
-
     protected int|string|array $columnSpan = 'full';
+    protected $listeners = ['attendance-updated' => '$refresh'];
 
+   
+   
     protected function getViewData(): array
     {
         $userId = Auth::id();
@@ -21,6 +23,7 @@ class MyMonthlyAttendance extends Widget
 
         $records = Attendance::where('user_id', $userId)
             ->whereMonth('attendance_date', $month)
+            ->whereYear('attendance_date', now()->year)
             ->get();
 
         return [
@@ -32,6 +35,3 @@ class MyMonthlyAttendance extends Widget
         ];
     }
 }
-
-
-

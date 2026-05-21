@@ -8,8 +8,12 @@ use Illuminate\Support\Facades\Auth;
 
 class MonthlyProductivityChart extends ChartWidget
 {
+    protected static bool $isDiscovered = false;
     protected static ?string $heading = 'Productividad mensual';
-
+    protected static ?string $pollingInterval = '5s';
+    protected $listeners = ['attendance-updated' => '$refresh'];
+   
+    
     protected function getData(): array
     {
         $userId = Auth::id();

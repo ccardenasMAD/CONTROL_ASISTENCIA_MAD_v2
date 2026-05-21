@@ -53,6 +53,7 @@
             <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-emerald-500"></span> Presente</div>
             <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-amber-500"></span> Tarde</div>
             <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-red-500"></span> Ausente</div>
+            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-pink-500"></span> Vacaciones</div>
             <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-slate-700 ring-1 ring-slate-600"></span> Sin registro</div>
         </div>
 
@@ -129,7 +130,7 @@
         </div>
     </div>
 
-    {{-- MODAL (sin cambios mayores) --}}
+    {{--MODAL--}}
     <x-filament::modal id="attendanceModal" width="md">
         <x-slot name="heading">
             <span class="text-lg font-bold text-blue-400">Detalles de Asistencia</span>
@@ -138,7 +139,7 @@
         @if($modalData)
             @php
                 $status = $modalData['status'];
-                $a = $modalData['attendance'];
+                $a = $modalData['attendance'] ?? null;
                 $checkIn    = $a?->check_in?->format('H:i') ?? '—';
                 $checkOut   = $a?->check_out?->format('H:i') ?? '—';
                 $breakStart = $a?->break_start?->format('H:i') ?? '—';

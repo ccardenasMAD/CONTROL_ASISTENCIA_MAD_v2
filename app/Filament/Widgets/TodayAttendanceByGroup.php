@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\DB;
 
 class TodayAttendanceByGroup extends ChartWidget
 {
+    protected static bool $isDiscovered = false;
     protected static ?string $heading = 'Asistencia por Grupo';
-
     protected int | string | array $columnSpan = 1;
 
     protected function getType(): string
