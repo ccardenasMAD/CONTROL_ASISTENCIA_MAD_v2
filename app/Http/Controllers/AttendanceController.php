@@ -27,7 +27,7 @@ class AttendanceController extends Controller
                 return back()->with('error', 'Ya registraste tu entrada.');
             }
 
-            Attendance::updateOrCreate(
+            $newAttendance = Attendance::updateOrCreate(
                 [
                     'user_id' => $userId,
                     'attendance_date' => $today,
@@ -40,6 +40,9 @@ class AttendanceController extends Controller
                     'ip_address' => $request->ip(),
                 ]
             );
+
+            // Forzamos al modelo a recalcular y guardar el estado real (ej: late o present)
+            $newAttendance->update(['status' => $newAttendance->getStatus()]);
 
             event('attendance-updated');
 
@@ -78,6 +81,8 @@ class AttendanceController extends Controller
                 'break_end' => null,
             ]);
 
+            $attendance->update(['status' => $attendance->getStatus()]);
+
             event('attendance-updated');
 
             return back()->with('success', 'Break iniciado correctamente.');
@@ -113,6 +118,8 @@ class AttendanceController extends Controller
             $attendance->update([
                 'break_end' => now(),
             ]);
+
+            $attendance->update(['status' => $attendance->getStatus()]);
 
             event('attendance-updated');
 
@@ -152,6 +159,9 @@ class AttendanceController extends Controller
                 'check_out_lng' => $request->lng,
                 'ip_address' => $request->ip(),
             ]);
+
+            // Al cerrar el día recalculamos el estado final (ej: early_exit o present)
+            $attendance->update(['status' => $attendance->getStatus()]);
 
             event('attendance-updated');
 

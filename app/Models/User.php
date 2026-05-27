@@ -1,14 +1,9 @@
 <?php
 
 namespace App\Models;
-<<<<<<< HEAD
 
 use Spatie\Permission\Traits\HasRoles;
-=======
-use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
->>>>>>> main
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -85,8 +80,6 @@ class User extends Authenticatable
         return $this->hasMany(Attendance::class);
     }
 
-
-
     public function getDailyStatus($date = null)
     {
         $date = $date ?? now()->toDateString();
@@ -124,7 +117,6 @@ class User extends Authenticatable
         return 'OUT';
     }
 
-
     public function getLastAction($date = null)
     {
         $date = $date ?? now()->toDateString();
@@ -152,7 +144,6 @@ class User extends Authenticatable
         return 'Sin registros';
     }
 
-
     public function getActionButton($date = null)
     {
         $status = $this->getDailyStatus($date);
@@ -166,7 +157,6 @@ class User extends Authenticatable
             default => 'NO_ACTION',
         };
     }
-
 
     /**
      * Turnos (Schedules) asignados al usuario

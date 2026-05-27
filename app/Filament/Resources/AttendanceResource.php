@@ -19,24 +19,11 @@ class AttendanceResource extends Resource
     protected static ?string $navigationGroup = 'Asistencia';
     protected static ?string $navigationLabel = 'Asistencias';
 
-    /**
-     * Mantenemos tu lógica de visibilidad intacta
-     */
     public static function shouldRegisterNavigation(): bool
     {
-        /*
-        return auth()->check() &&
-            (
-                auth()->user()->can('ver_asistencia') ||
-                auth()->user()->can('ver_asistencia_mi_grupo')
-            );
-        */
         return true;
     }
 
-    /**
-     * Formulario organizado por secciones (Sin Foto por Privacidad)
-     */
     public static function form(Form $form): Form
     {
         return $form->schema([
@@ -56,7 +43,6 @@ class AttendanceResource extends Resource
                         ->searchable()
                         ->required(),
 
-<<<<<<< HEAD
                     Forms\Components\DatePicker::make('attendance_date')
                         ->label('Fecha')
                         ->default(now())
@@ -72,23 +58,12 @@ class AttendanceResource extends Resource
 
                     Forms\Components\DateTimePicker::make('check_out')
                         ->label('Salida'),
-=======
-            Forms\Components\DatePicker::make('date')
-                ->label('Fecha')
-                ->required(),
 
-            Forms\Components\TimePicker::make('time')
-                ->label('Hora')
-                ->required(),
+                    Forms\Components\DateTimePicker::make('break_start')
+                        ->label('Inicio de Break'),
 
-            Forms\Components\Select::make('type')
-                ->label('Tipo')
-                ->options([
-                    'in' => 'Entrada',
-                    'out' => 'Salida',
-                ])
-                ->required(),
->>>>>>> main
+                    Forms\Components\DateTimePicker::make('break_end')
+                        ->label('Fin de Break'),
 
                     Forms\Components\Select::make('source')
                         ->label('Origen del Registro')
@@ -105,31 +80,20 @@ class AttendanceResource extends Resource
                         ->content('Validación mediante Face-ID activa (No se guardan imágenes)'),
                 ])->columns(2),
 
-            // Campos GPS Ocultos (Coinciden con los IDs del Script)
-            Forms\Components\Hidden::make('latitude')->extraAttributes(['id' => 'lat-hidden']),
-            Forms\Components\Hidden::make('longitude')->extraAttributes(['id' => 'lng-hidden']),
-            Forms\Components\Hidden::make('status')->default('present'),
-
+            // Campos GPS Ocultos corregidos para coincidir con tu base de datos y script
+            Forms\Components\Hidden::make('check_in_lat')->extraAttributes(['id' => 'lat-hidden']),
+            Forms\Components\Hidden::make('check_in_lng')->extraAttributes(['id' => 'lng-hidden']),
+            Forms\Components\Hidden::make('status'),
         ]);
     }
 
-    /**
-     * Tabla estilo reporte 
-     */
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-<<<<<<< HEAD
-=======
-                Tables\Columns\TextColumn::make('date')
-                    ->label('Fecha')
-                    ->date(),
-
->>>>>>> main
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Empleado')
-                    ->description(fn ($record) => "Sede: {$record->group->name}")
+                    ->description(fn ($record) => "Sede: " . ($record->group?->name ?? 'Sin sede'))
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('attendance_date')
@@ -137,7 +101,6 @@ class AttendanceResource extends Resource
                     ->date('d/m/Y')
                     ->sortable(),
 
-<<<<<<< HEAD
                 Tables\Columns\TextColumn::make('check_in')
                     ->label('Entrada')
                     ->dateTime('H:i')
@@ -148,43 +111,33 @@ class AttendanceResource extends Resource
                     ->dateTime('H:i')
                     ->color('danger'),
 
-                // Duración total calculada desde el modelo
                 Tables\Columns\TextColumn::make('formatted_duration')
                     ->label('Total Horas')
                     ->badge()
                     ->color('info'),
 
-                // Ubicación con enlace funcional a Google Maps
+                // Geolocalización mapeada de manera correcta con enlace dinámico
                 Tables\Columns\TextColumn::make('location')
                     ->label('GPS')
                     ->icon('heroicon-m-map-pin')
                     ->color('gray')
-                    ->getStateUsing(fn ($record) => $record->latitude ? 'Ver Mapa' : 'Sin GPS')
-                    ->url(fn ($record) => $record->latitude 
-                        ? "https://www.google.com/maps/search/?api=1&query={$record->latitude},{$record->longitude}" 
+                    ->getStateUsing(fn ($record) => $record->check_in_lat ? 'Ver Mapa' : 'Sin GPS')
+                    ->url(fn ($record) => $record->check_in_lat 
+                        ? "https://www.google.com/maps/search/?api=1&query={$record->check_in_lat},{$record->check_in_lng}" 
                         : null, true),
-=======
-                Tables\Columns\TextColumn::make('type')
-                    ->label('Evento')
-                    ->formatStateUsing(fn ($state) => match ($state) {
-                        'in' => 'Entrada',
-                        'out' => 'Salida',
-                        default => $state,
-                    }),
 
-                Tables\Columns\TextColumn::make('time')
-                    ->label('Hora')
-                    ->formatStateUsing(fn (?string $state) => $state ? substr($state, 0, 5) : '—'),
->>>>>>> main
-
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
+                    ->badge()
+                    // Lee dinámicamente tu método getStatus() del modelo para evitar incongruencias
+                    ->getStateUsing(fn ($record) => $record->getStatus())
                     ->colors([
                         'success' => 'present',
                         'warning' => 'late',
                         'danger' => 'absent',
                         'primary' => 'early_exit',
                         'gray' => 'incomplete',
+                        'pink' => 'vacation',
                     ])
                     ->formatStateUsing(fn ($state) => match ($state) {
                         'present' => 'Presente',
@@ -192,13 +145,13 @@ class AttendanceResource extends Resource
                         'early_exit' => 'Salida Anticipada',
                         'absent' => 'Ausente',
                         'incomplete' => 'Incompleta',
+                        'vacation' => 'Vacaciones',
                         default => '—',
                     }),
             ])
             ->actions([
-                // Mantenemos tu acción de editar con permiso original
                 Tables\Actions\EditAction::make()
-                    ->visible(fn () => auth()->user()->can('regularizar_asistencia')),
+                    ->visible(fn () => auth()->user()?->can('regularizar_asistencia')),
             ]);
     }
 
@@ -211,9 +164,6 @@ class AttendanceResource extends Resource
         ];
     }
 
-    /**
-     * Mantenemos tu script de GPS original para captura automática
-     */
     public static function getEloquentQuery(): Builder
     {
         if (request()->routeIs('filament.admin.resources.attendances.create')) {
@@ -225,7 +175,6 @@ class AttendanceResource extends Resource
                         if (lat && lng) {
                             lat.value = position.coords.latitude;
                             lng.value = position.coords.longitude;
-                            // Avisamos a Filament que el valor cambió
                             lat.dispatchEvent(new Event('input'));
                             lng.dispatchEvent(new Event('input'));
                         }

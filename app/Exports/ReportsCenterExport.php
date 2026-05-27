@@ -46,7 +46,7 @@ class ReportsCenterExport implements FromCollection, WithHeadings, WithMapping
         ];
     }
 
-    // ✅ FIX PRINCIPAL (acepta null)
+    // FIX PRINCIPAL (acepta null)
     private function formatStatus(?string $status): string
     {
         return match ($status) {

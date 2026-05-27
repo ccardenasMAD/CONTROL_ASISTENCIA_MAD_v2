@@ -11,12 +11,12 @@ use Carbon\CarbonPeriod;
 
 class TimesheetExport implements FromCollection, WithHeadings, WithMapping
 {
-    protected $month;
-    protected $year;
-    protected $groupId;
-    protected $days;
+    protected int $month;
+    protected int $year;
+    protected ?int $groupId;
+    protected \Carbon\CarbonPeriod $days;
 
-    public function __construct($month, $year, $groupId)
+    public function __construct(int $month, int $year, ?int $groupId)
     {
         $this->month = $month;
         $this->year = $year;

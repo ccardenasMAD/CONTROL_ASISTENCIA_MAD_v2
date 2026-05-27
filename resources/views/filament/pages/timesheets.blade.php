@@ -39,7 +39,7 @@
                     class="w-full pl-9 pr-4 py-2 rounded-lg bg-slate-900 ring-1 ring-slate-700 text-slate-200 placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none transition" />
             </div>
 
-            <select wire:model.live="groupFilter"
+            <select wire:model.live="groupId"
                 class="w-full md:w-64 px-4 py-2 rounded-lg bg-slate-900 ring-1 ring-slate-700 text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                 <option value="">Todos los grupos</option>
                 @foreach(App\Models\Group::all() as $group)
@@ -51,7 +51,7 @@
         {{-- LEYENDA --}}
         <div class="flex flex-wrap items-center gap-4 text-xs text-slate-400">
             <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-emerald-500"></span> Presente</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-amber-500"></span> Tarde</div>
+            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-amber-500"></span> Tarde / Salida Temprana</div>
             <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-red-500"></span> Ausente</div>
             <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-pink-500"></span> Vacaciones</div>
             <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-slate-700 ring-1 ring-slate-600"></span> Sin registro</div>
@@ -107,20 +107,29 @@
                                     $isWeekend = in_array($info['weekday_full'], ['Sábado', 'Domingo']);
                                     $cellBg    = $isWeekend ? 'bg-slate-900/60' : '';
                                     $date = $info['date'];
-                                    $cell = $user['calendar'][$date] ?? ['status' => 'none', 'color' => 'bg-slate-800'];
+                                    $cell = $user['calendar'][$date] ?? ['status' => 'none'];
+                                    
+                                    // Mapeo forzado directo en HTML para evitar que el optimizador de Tailwind destruya los colores
+                                    $colorClass = match($cell['status']) {
+                                        'present' => 'bg-emerald-500 hover:bg-emerald-400',
+                                        'late', 'early_exit' => 'bg-amber-500 hover:bg-amber-400',
+                                        'absent' => 'bg-red-500 hover:bg-red-400',
+                                        'vacation' => 'bg-pink-500 hover:bg-pink-400',
+                                        default => 'bg-slate-700/60 hover:bg-slate-600',
+                                    };
                                 @endphp
                                 <td class="px-2 py-2 text-center border-b border-slate-800/60 {{ $cellBg }}">
                                     <button type="button"
                                         wire:click="openAttendanceModal({{ $user['id'] }}, '{{ $date }}')"
                                         x-on:click="$dispatch('open-modal', { id: 'attendanceModal' })"
-                                        class="w-7 h-7 mx-auto rounded-md transition hover:scale-110 hover:ring-2 hover:ring-blue-400/60 ring-1 ring-slate-700/60 {{ $cell['color'] }}"
+                                        class="w-7 h-7 mx-auto rounded-md transition hover:scale-110 hover:ring-2 hover:ring-blue-400/60 ring-1 ring-slate-700/60 {{ $colorClass }}"
                                         title="{{ $cell['status'] }}"></button>
                                 </td>
                             @endforeach
 
                             <td class="px-4 py-3 text-right border-b border-slate-800/60">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 font-semibold text-xs">
-                                    {{ intdiv($user['totalMinutes'], 60) }}h {{ $user['totalMinutes'] % 60 }}m
+                                    {{ is_numeric($user['totalMinutes']) ? intdiv($user['totalMinutes'], 60).'h '.($user['totalMinutes'] % 60).'m' : '0h 0m' }}
                                 </span>
                             </td>
                         </tr>
@@ -140,11 +149,14 @@
             @php
                 $status = $modalData['status'];
                 $a = $modalData['attendance'] ?? null;
-                $checkIn    = $a?->check_in?->format('H:i') ?? '—';
-                $checkOut   = $a?->check_out?->format('H:i') ?? '—';
-                $breakStart = $a?->break_start?->format('H:i') ?? '—';
-                $breakEnd   = $a?->break_end?->format('H:i') ?? '—';
-                $w = $modalData['worked'] ?? 0;
+                
+                // Evitamos el formateo sobre propiedades nulas
+                $checkIn    = ($a && $a->check_in) ? \Carbon\Carbon::parse($a->check_in)->format('H:i') : '—';
+                $checkOut   = ($a && $a->check_out) ? \Carbon\Carbon::parse($a->check_out)->format('H:i') : '—';
+                $breakStart = ($a && $a->break_start) ? \Carbon\Carbon::parse($a->break_start)->format('H:i') : '—';
+                $breakEnd   = ($a && $a->break_end) ? \Carbon\Carbon::parse($a->break_end)->format('H:i') : '—';
+                
+                $workedValue = $modalData['worked'] ?? 0;
             @endphp
 
             <div class="space-y-4">
@@ -170,7 +182,13 @@
                     <dd class="text-slate-200">{{ $breakEnd }}</dd>
 
                     <dt class="text-slate-400">Total:</dt>
-                    <dd class="text-sky-400 font-bold">{{ intdiv($w, 60) }}h {{ $w % 60 }}m</dd>
+                    <dd class="text-sky-400 font-bold">
+                        @if(is_numeric($workedValue))
+                            {{ intdiv($workedValue, 60) }}h {{ $workedValue % 60 }}m
+                        @else
+                            {{ $workedValue }}
+                        @endif
+                    </dd>
                 </dl>
             </div>
         @endif

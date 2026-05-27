@@ -18,10 +18,10 @@ class Timesheets extends Page
     protected static ?string $title = 'Timesheets';
     protected static ?string $navigationGroup = 'Asistencia';
 
-    public $month;
-    public $year;
-    public $groupId = null;
-    public $search = '';
+    public int $month;
+    public int $year;
+    public ?int $groupId = null;
+    public string $search = '';
 
     public array $days = [];
     public array $usersData = [];
@@ -116,6 +116,7 @@ class Timesheets extends Page
                 'id' => $user->id,
                 'name' => $user->name,
                 'calendar' => $calendar,
+                'attendances' => $user->attendances,
                 'totalMinutes' => array_sum(array_column($calendar, 'minutes')),
             ];
         }
@@ -132,55 +133,38 @@ class Timesheets extends Page
     }
 
    
-    public function openAttendanceModal($userId, $date)
+    public function openAttendanceModal(int $userId, string $date): void
     {
         $carbonDate = Carbon::parse($date);
-
     
-        if ($carbonDate->dayOfWeekIso >= 5) {
-
-            $user = User::find($userId);
-
-            $this->modalData = [
-                'user' => $user?->name,
-                'date' => $carbonDate->format('d M Y'),
-                'status' => 'Día no laboral',
-                'check_in' => '—',
-                'check_out' => '—',
-                'break_start' => '—',
-                'break_end' => '—',
-                'worked' => 0,
-
-            ];
-
-            $this->showModal = true;
+        $userData = collect($this->usersData)->firstWhere('id', $userId);
+    
+        if (!$userData) {
             return;
         }
-
-        // Día laboral → buscar asistencia real
-        $attendance = Attendance::where('user_id', $userId)
-            ->whereDate('attendance_date', $date)
-            ->first();
-
-        $user = User::find($userId);
-
+    
+     
+        $dayData = $userData['calendar'][$carbonDate->toDateString()] ?? null;
+ 
+        $user = User::with(['attendances'])->find($userId);
+    
+        $attendance = $user->attendances
+            ->first(fn($a) => $a->attendance_date->isSameDay($carbonDate));
+    
         $this->modalData = [
             'user' => $user?->name,
-            'date' => $carbonDate->format('d M Y'),
-            'status' => $attendance?->status ?? 'Sin registro',
-            'check_in' => $attendance?->check_in?->format('H:i') ?? '—',
-            'check_out' => $attendance?->check_out?->format('H:i') ?? '—',
-            'break_start' => $attendance?->break_start?->format('H:i') ?? '—',
-            'break_end' => $attendance?->break_end?->format('H:i') ?? '—',
-            'worked' => ($attendance?->check_in && $attendance?->check_out)
-                ? $attendance->check_in->diffInMinutes($attendance->check_out)
-                : 0,
+            'date' => $carbonDate->toDateString(),
+            'status' => $attendance ? $attendance->getStatus() : 'Sin registro',
+            'attendance' => $attendance,
+            'worked' => $attendance?->getWorkedMinutes() ?? 0,
         ];
-
+    
         $this->showModal = true;
     }
+    
+    
 
-    public function changeMonth($direction)
+    public function changeMonth(int $direction): void
     {
         $date = Carbon::create($this->year, $this->month, 1)
             ->addMonths($direction);
