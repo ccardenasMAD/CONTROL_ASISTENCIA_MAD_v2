@@ -12,6 +12,12 @@ class MonthlyProductivityOverview extends Widget
     protected static string $view = 'filament.widgets.monthly-productivity-overview';
     protected int|string|array $columnSpan = 'full';
     protected $listeners = ['attendance-updated' => '$refresh'];
+    
+    public static function isLazy(): bool
+    {
+        return false;
+    }
+    
     public function getViewData(): array
     {
         $userId = Auth::id();
