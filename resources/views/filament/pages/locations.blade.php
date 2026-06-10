@@ -92,13 +92,20 @@
     {{-- CONTENIDO --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {{-- MAPA --}}
-        <div class="lg:col-span-1">
-            <div class="relative bg-slate-900 ring-1 ring-slate-700/60 rounded-3xl overflow-hidden shadow-3xl shadow-black/40">
-            <div id="locations-map" class="z-0 h-[calc(100vh-180px)] w-full"></div>
-                <div class="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-slate-950/40 to-transparent z-10"></div>
-            </div>
+    {{-- MAPA --}}
+<div class="lg:col-span-1">
+    <div class="relative bg-slate-900 ring-1 ring-slate-700/60 rounded-3xl overflow-hidden shadow-3xl shadow-black/40">
+
+        {{-- ESTE CONTENEDOR ES CRÍTICO: Livewire NO debe tocar el mapa --}}
+        <div wire:ignore>
+        <div id="locations-map" wire:ignore style="height: 600px; width: 100%;"></div>
+
         </div>
+
+        <div class="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-slate-950/40 to-transparent z-10"></div>
+    </div>
+</div>
+
 
         {{-- PANEL LATERAL --}}
 <div class="lg:col-span-1">
@@ -111,10 +118,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                           d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <h3 class="text-sm font-semibold text-white">Registros del día</h3>
+                <h3 class="text-sm font-semibold text-white">Registros del Mes</h3>
             </div>
             <span class="text-xs font-medium text-blue-300 bg-blue-500/10 ring-1 ring-blue-500/20 px-2 py-0.5 rounded-full">
-                {{ $attendances->count() }}
+            {{ $allAttendances->count() }}
             </span>
         </div>
 
@@ -122,16 +129,17 @@
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
 
             {{-- LISTA --}}
-            @if ($attendances->isEmpty())
+            @if ($allAttendances->isEmpty())
                 <div class="text-center py-10 text-slate-400">
                     <svg class="w-10 h-10 mx-auto mb-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 012.382-1.894L9 5m0 15l6-3m-6 3V5m6 12l5.447 2.724A2 2 0 0021 17.382V7.618a2 2 0 00-1.382-1.894L15 4m0 13V4m0 0L9 5"/>
                     </svg>
-                    <p class="text-sm">No hay registros con ubicación para estos filtros.</p>
+                    <p class="text-sm">No hay registros para este usuario en el mes seleccionado.
+                    </p>
                 </div>
             @else
-                @foreach ($attendances as $attendance)
+            @foreach ($allAttendances as $attendance)
                     <div class="group bg-slate-950/60 hover:bg-slate-900 transition-all duration-200 ring-1 ring-slate-800 hover:ring-blue-500/40 rounded-xl p-4 cursor-pointer">
 
                         <div class="flex items-center justify-between mb-3">
@@ -185,27 +193,27 @@
                     <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-xl p-3 text-center">
                         <p class="text-[10px] text-slate-500 uppercase tracking-wide">Check-ins</p>
                         <p class="text-lg font-bold text-emerald-400">
-                            {{ $attendances->whereNotNull('check_in')->count() }}
+                        {{ $allAttendances->whereNotNull('check_in')->count() }}
                         </p>
                     </div>
 
                     <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-xl p-3 text-center">
                         <p class="text-[10px] text-slate-500 uppercase tracking-wide">Check-outs</p>
                         <p class="text-lg font-bold text-red-400">
-                            {{ $attendances->whereNotNull('check_out')->count() }}
+                        {{ $allAttendances->whereNotNull('check_out')->count() }}
                         </p>
                     </div>
 
                     <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-xl p-3 text-center">
                         <p class="text-[10px] text-slate-500 uppercase tracking-wide">Registros</p>
                         <p class="text-lg font-bold text-blue-400">
-                            {{ $attendances->count() }}
+                        {{ $allAttendances->count() }}
                         </p>
                     </div>
 
                 </div>
             </div>
-            {{-- CUADRO 3: ESTADO DETALLADO  --}}
+            {{-- CUADRO 3: ESTADO DETALLADO --}}
 <div class="border-t border-slate-800 pt-4">
     <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
         Estado detallado
@@ -221,7 +229,7 @@
             </div>
 
             @php
-                $checkIn = $attendances->filter(fn($a) => $a->getLocationStatus() === 'in');
+                $checkIn = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'in');
             @endphp
 
             @if($checkIn->isEmpty())
@@ -243,7 +251,7 @@
             </div>
 
             @php
-                $checkOut = $attendances->filter(fn($a) => $a->getLocationStatus() === 'out');
+                $checkOut = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'out');
             @endphp
 
             @if($checkOut->isEmpty())
@@ -265,7 +273,7 @@
             </div>
 
             @php
-                $break = $attendances->filter(fn($a) => $a->getLocationStatus() === 'break');
+                $break = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'break');
             @endphp
 
             @if($break->isEmpty())
@@ -287,7 +295,7 @@
             </div>
 
             @php
-                $presentUserIds = $attendances->pluck('user_id')->unique();
+                $presentUserIds = $allAttendances->pluck('user_id')->unique();
                 $absentUsers = $users->whereNotIn('id', $presentUserIds);
             @endphp
 
@@ -306,10 +314,16 @@
 </div>
 
 
+
     {{-- LEAFLET --}}
+    
+   
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+
+    
     <style>
         #locations-map .leaflet-control-zoom a {
             background: #1e293b !important;
@@ -336,13 +350,18 @@
         }
         #locations-map .leaflet-control-attribution a { color: #60a5fa !important; }
     </style>
-
+    
+    @script
     <script>
         let map = null;
         let markersLayer = null;
 
-        document.addEventListener('livewire:navigated', function () {
-            if (map !== null) return;
+       
+            
+            if (map !== null) {
+                map.remove();
+                map = null;
+            }
 
             map = L.map('locations-map', {
                 zoomControl: false,
@@ -432,5 +451,6 @@
             Livewire.on('refreshLocationsMap', data => renderMarkers(data));
         });
     </script>
+  @endscript
 
 </x-filament-panels::page>

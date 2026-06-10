@@ -218,4 +218,35 @@ public function getWorkStartForTimer()
             default      => 'bg-gray-200',
         };
     }
+
+    public function getLocationStatus(): string
+{
+    // No ha marcado nada
+    if (!$this->check_in && !$this->check_out) {
+        return 'none';
+    }
+
+    // Check-in sin check-out → está dentro
+    if ($this->check_in && !$this->check_out && !$this->break_start) {
+        return 'in';
+    }
+
+    // Está en break
+    if ($this->break_start && !$this->break_end) {
+        return 'break';
+    }
+
+    // Volvió del break pero aún no hace check-out
+    if ($this->break_end && !$this->check_out) {
+        return 'return';
+    }
+
+    // Ya hizo check-out → fuera
+    if ($this->check_out) {
+        return 'out';
+    }
+
+    return 'none';
+}
+
 }
