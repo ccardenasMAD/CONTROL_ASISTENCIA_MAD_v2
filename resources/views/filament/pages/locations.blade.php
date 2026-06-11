@@ -5,10 +5,8 @@
         <div>
             <h1 class="text-2xl font-semibold text-white tracking-tight flex items-center gap-2">
                 <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M12 11a3 3 0 100-6 3 3 0 000 6z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M19.5 10.5c0 6-7.5 11-7.5 11s-7.5-5-7.5-11a7.5 7.5 0 1115 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 11a3 3 0 100-6 3 3 0 000 6z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 6-7.5 11-7.5 11s-7.5-5-7.5-11a7.5 7.5 0 1115 0z"/>
                 </svg>
                 Locations
             </h1>
@@ -36,7 +34,6 @@
 
     {{-- FILTROS --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-
         {{-- FECHA --}}
         <div class="bg-slate-900/70 hover:bg-slate-900/80 transition-colors ring-1 ring-slate-700/60 rounded-xl p-5">
             <label class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">
@@ -45,11 +42,7 @@
                 </svg>
                 Fecha
             </label>
-            <input
-                type="date"
-                wire:model.live="date"
-                class="w-full bg-slate-950/60 border-0 ring-1 ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-lg px-3 py-2 text-sm text-slate-100"
-            />
+            <input type="date" wire:model.live="date" class="w-full bg-slate-950/60 border-0 ring-1 ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-lg px-3 py-2 text-sm text-slate-100" />
         </div>
 
         {{-- EMPLEADO --}}
@@ -60,10 +53,7 @@
                 </svg>
                 Empleado
             </label>
-            <select
-                wire:model.live="userId"
-                class="w-full bg-slate-950/60 border-0 ring-1 ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-lg px-3 py-2 text-sm text-slate-100"
-            >
+            <select wire:model.live="userId" class="w-full bg-slate-950/60 border-0 ring-1 ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-lg px-3 py-2 text-sm text-slate-100">
                 <option value="">Todos</option>
                 @foreach($users as $u)
                     <option value="{{ $u->id }}">{{ $u->name }}</option>
@@ -86,278 +76,209 @@
                 <option>Próximamente...</option>
             </select>
         </div>
-
     </div>
 
-    {{-- CONTENIDO --}}
+    {{-- CONTENIDO PRINCIPAL (GRILLA) --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-    {{-- MAPA --}}
-<div class="lg:col-span-1">
-    <div class="relative bg-slate-900 ring-1 ring-slate-700/60 rounded-3xl overflow-hidden shadow-3xl shadow-black/40">
-
-        {{-- ESTE CONTENEDOR ES CRÍTICO: Livewire NO debe tocar el mapa --}}
-        <div wire:ignore>
-        <div id="locations-map" wire:ignore style="height: 600px; width: 100%;"></div>
-
-        </div>
-
-        <div class="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-slate-950/40 to-transparent z-10"></div>
-    </div>
-</div>
-
-
-        {{-- PANEL LATERAL --}}
-<div class="lg:col-span-1">
-    <div class="bg-slate-900/70 ring-1 ring-slate-700/60 rounded-3xl overflow-hidden flex flex-col h-full">
-
-        {{-- HEADER PANEL --}}
-        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-10">
-            <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <h3 class="text-sm font-semibold text-white">Registros del Mes</h3>
-            </div>
-            <span class="text-xs font-medium text-blue-300 bg-blue-500/10 ring-1 ring-blue-500/20 px-2 py-0.5 rounded-full">
-            {{ $allAttendances->count() }}
-            </span>
-        </div>
-
-        {{-- CONTENIDO SCROLLABLE --}}
-        <div class="flex-1 overflow-y-auto p-4 space-y-4">
-
-            {{-- LISTA --}}
-            @if ($allAttendances->isEmpty())
-                <div class="text-center py-10 text-slate-400">
-                    <svg class="w-10 h-10 mx-auto mb-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 012.382-1.894L9 5m0 15l6-3m-6 3V5m6 12l5.447 2.724A2 2 0 0021 17.382V7.618a2 2 0 00-1.382-1.894L15 4m0 13V4m0 0L9 5"/>
-                    </svg>
-                    <p class="text-sm">No hay registros para este usuario en el mes seleccionado.
-                    </p>
+        {{-- COLUMNA: MAPA --}}
+        <div class="lg:col-span-1">
+            <div class="relative bg-slate-900 ring-1 ring-slate-700/60 rounded-3xl overflow-hidden shadow-3xl shadow-black/40">
+                <div wire:ignore>
+                    <div id="locations-map" style="height: 600px; width: 100%;"></div>
                 </div>
-            @else
-            @foreach ($allAttendances as $attendance)
-                    <div class="group bg-slate-950/60 hover:bg-slate-900 transition-all duration-200 ring-1 ring-slate-800 hover:ring-blue-500/40 rounded-xl p-4 cursor-pointer">
+                <div class="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-slate-950/40 to-transparent z-10"></div>
+            </div>
+        </div>
 
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-xs font-semibold text-white shrink-0 ring-2 ring-blue-500/40 shadow-md">
-                                    {{ strtoupper(substr($attendance->user->name, 0, 1)) }}
-                                </div>
-                                <span class="text-sm font-medium text-slate-100 truncate">
-                                    {{ $attendance->user->name }}
-                                </span>
-                            </div>
-                            <span class="text-[11px] font-medium text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded shrink-0">
-                                {{ $attendance->attendance_date->format('d/m/Y') }}
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="flex items-center gap-2 bg-emerald-500/5 ring-1 ring-emerald-500/15 rounded-lg px-2.5 py-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/30"></span>
-                                <div class="flex flex-col leading-tight">
-                                    <span class="text-[10px] uppercase tracking-wide text-emerald-400/80">Check-in</span>
-                                    <span class="text-xs font-semibold text-emerald-300">
-                                        {{ $attendance->check_in ? $attendance->check_in->format('H:i') : '—' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-2 bg-red-500/5 ring-1 ring-red-500/15 rounded-lg px-2.5 py-1.5">
-                                <span class="w-2 h-2 rounded-full bg-red-500 ring-2 ring-red-500/30"></span>
-                                <div class="flex flex-col leading-tight">
-                                    <span class="text-[10px] uppercase tracking-wide text-red-400/80">Check-out</span>
-                                    <span class="text-xs font-semibold text-red-300">
-                                        {{ $attendance->check_out ? $attendance->check_out->format('H:i') : '—' }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
+        {{-- COLUMNA: PANEL LATERAL --}}
+        <div class="lg:col-span-1">
+            <div class="bg-slate-900/70 ring-1 ring-slate-700/60 rounded-3xl overflow-hidden flex flex-col h-full">
+                
+                {{-- HEADER PANEL --}}
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-10">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <h3 class="text-sm font-semibold text-white">Registros del Mes</h3>
                     </div>
-                @endforeach
-            @endif
-
-            {{-- CUADRO 2: RESUMEN DEL DÍA --}}
-            <div class="border-t border-slate-800 pt-4">
-                <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
-                    Resumen del día
-                </h4>
-
-                <div class="grid grid-cols-3 gap-3">
-
-                    <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-xl p-3 text-center">
-                        <p class="text-[10px] text-slate-500 uppercase tracking-wide">Check-ins</p>
-                        <p class="text-lg font-bold text-emerald-400">
-                        {{ $allAttendances->whereNotNull('check_in')->count() }}
-                        </p>
-                    </div>
-
-                    <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-xl p-3 text-center">
-                        <p class="text-[10px] text-slate-500 uppercase tracking-wide">Check-outs</p>
-                        <p class="text-lg font-bold text-red-400">
-                        {{ $allAttendances->whereNotNull('check_out')->count() }}
-                        </p>
-                    </div>
-
-                    <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-xl p-3 text-center">
-                        <p class="text-[10px] text-slate-500 uppercase tracking-wide">Registros</p>
-                        <p class="text-lg font-bold text-blue-400">
+                    <span class="text-xs font-medium text-blue-300 bg-blue-500/10 ring-1 ring-blue-500/20 px-2 py-0.5 rounded-full">
                         {{ $allAttendances->count() }}
-                        </p>
+                    </span>
+                </div>
+
+                {{-- CONTENIDO SCROLLABLE PANEL --}}
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    @if ($allAttendances->isEmpty())
+                        <div class="text-center py-10 text-slate-400">
+                            <svg class="w-10 h-10 mx-auto mb-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 012.382-1.894L9 5m0 15l6-3m-6 3V5m6 12l5.447 2.724A2 2 0 0021 17.382V7.618a2 2 0 00-1.382-1.894L15 4m0 13V4m0 0L9 5"/>
+                            </svg>
+                            <p class="text-sm">No hay registros para este usuario en el mes seleccionado.</p>
+                        </div>
+                    @else
+                        @foreach ($allAttendances as $attendance)
+                            <div class="group bg-slate-950/60 hover:bg-slate-900 transition-all duration-200 ring-1 ring-slate-800 hover:ring-blue-500/40 rounded-xl p-4 cursor-pointer">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-xs font-semibold text-white shrink-0 ring-2 ring-blue-500/40 shadow-md">
+                                            {{ strtoupper(substr($attendance->user->name, 0, 1)) }}
+                                        </div>
+                                        <span class="text-sm font-medium text-slate-100 truncate">
+                                            {{ $attendance->user->name }}
+                                        </span>
+                                    </div>
+                                    <span class="text-[11px] font-medium text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded shrink-0">
+                                        {{ $attendance->attendance_date->format('d/m/Y') }}
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="flex items-center gap-2 bg-emerald-500/5 ring-1 ring-emerald-500/15 rounded-lg px-2.5 py-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/30"></span>
+                                        <div class="flex flex-col leading-tight">
+                                            <span class="text-[10px] uppercase tracking-wide text-emerald-400/80">Check-in</span>
+                                            <span class="text-xs font-semibold text-emerald-300">
+                                                {{ $attendance->check_in ? $attendance->check_in->format('H:i') : '—' }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 bg-red-500/5 ring-1 ring-red-500/15 rounded-lg px-2.5 py-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-red-500 ring-2 ring-red-500/30"></span>
+                                        <div class="flex flex-col leading-tight">
+                                            <span class="text-[10px] uppercase tracking-wide text-red-400/80">Check-out</span>
+                                            <span class="text-xs font-semibold text-red-300">
+                                                {{ $attendance->check_out ? $attendance->check_out->format('H:i') : '—' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+
+                    {{-- RESUMEN DEL DÍA --}}
+                    <div class="border-t border-slate-800 pt-4">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Resumen del día</h4>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-xl p-3 text-center">
+                                <p class="text-[10px] text-slate-500 uppercase tracking-wide">Check-ins</p>
+                                <p class="text-lg font-bold text-emerald-400">{{ $allAttendances->whereNotNull('check_in')->count() }}</p>
+                            </div>
+                            <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-xl p-3 text-center">
+                                <p class="text-[10px] text-slate-500 uppercase tracking-wide">Check-outs</p>
+                                <p class="text-lg font-bold text-red-400">{{ $allAttendances->whereNotNull('check_out')->count() }}</p>
+                            </div>
+                            <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-xl p-3 text-center">
+                                <p class="text-[10px] text-slate-500 uppercase tracking-wide">Registros</p>
+                                <p class="text-lg font-bold text-blue-400">{{ $allAttendances->count() }}</p>
+                            </div>
+                        </div>
                     </div>
 
-                </div>
-            </div>
-            {{-- CUADRO 3: ESTADO DETALLADO --}}
-<div class="border-t border-slate-800 pt-4">
-    <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
-        Estado detallado
-    </h4>
+                    {{-- ESTADO DETALLADO --}}
+                    <div class="border-t border-slate-800 pt-4">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Estado detallado</h4>
+                        <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-2xl p-4 text-sm space-y-5">
+                            {{-- CHECK-IN DETALLADO --}}
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/30"></span>
+                                    <p class="text-xs font-bold text-emerald-400 tracking-wide">CHECK-IN</p>
+                                </div>
+                                @php $checkIn = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'in'); @endphp
+                                @if($checkIn->isEmpty())
+                                    <p class="text-slate-500 text-xs ml-4">Nadie ha hecho check-in.</p>
+                                @else
+                                    <ul class="ml-4 space-y-1">
+                                        @foreach($checkIn as $a) <li class="text-slate-300">{{ $a->user->name }}</li> @endforeach
+                                    </ul>
+                                @endif
+                            </div>
 
-    <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-2xl p-4 text-sm space-y-5">
+                            {{-- CHECK-OUT DETALLADO --}}
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-red-500/30"></span>
+                                    <p class="text-xs font-bold text-red-400 tracking-wide">CHECK-OUT</p>
+                                </div>
+                                @php $checkOut = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'out'); @endphp
+                                @if($checkOut->isEmpty())
+                                    <p class="text-slate-500 text-xs ml-4">Nadie ha hecho check-out.</p>
+                                @else
+                                    <ul class="ml-4 space-y-1">
+                                        @foreach($checkOut as $a) <li class="text-slate-300">{{ $a->user->name }}</li> @endforeach
+                                    </ul>
+                                @endif
+                            </div>
 
-        {{-- CHECK-IN --}}
-        <div>
-            <div class="flex items-center gap-2 mb-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/30"></span>
-                <p class="text-xs font-bold text-emerald-400 tracking-wide">CHECK-IN</p>
-            </div>
+                            {{-- BREAK DETALLADO --}}
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 ring-2 ring-yellow-400/30"></span>
+                                    <p class="text-xs font-bold text-yellow-400 tracking-wide">BREAK</p>
+                                </div>
+                                @php $break = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'break'); @endphp
+                                @if($break->isEmpty())
+                                    <p class="text-slate-500 text-xs ml-4">Nadie está en break.</p>
+                                @else
+                                    <ul class="ml-4 space-y-1">
+                                        @foreach($break as $a) <li class="text-slate-300">{{ $a->user->name }}</li> @endforeach
+                                    </ul>
+                                @endif
+                            </div>
 
-            @php
-                $checkIn = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'in');
-            @endphp
+                            {{-- AUSENTES DETALLADO --}}
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-500 ring-2 ring-slate-500/30"></span>
+                                    <p class="text-xs font-bold text-slate-400 tracking-wide">AUSENTES</p>
+                                </div>
+                                @php
+                                    $presentUserIds = $allAttendances->pluck('user_id')->unique();
+                                    $absentUsers = $users->whereNotIn('id', $presentUserIds);
+                                @endphp
+                                @if($absentUsers->isEmpty())
+                                    <p class="text-slate-500 text-xs ml-4">No hay ausentes.</p>
+                                @else
+                                    <ul class="ml-4 space-y-1">
+                                        @foreach($absentUsers as $u) <li class="text-slate-300">{{ $u->name }}</li> @endforeach
+                                    </ul>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
 
-            @if($checkIn->isEmpty())
-                <p class="text-slate-500 text-xs ml-4">Nadie ha hecho check-in.</p>
-            @else
-                <ul class="ml-4 space-y-1">
-                    @foreach($checkIn as $a)
-                        <li class="text-slate-300">{{ $a->user->name }}</li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
+                </div> {{-- CIERRE CONTENIDO SCROLLABLE --}}
+            </div> {{-- CIERRE DE LA CAJA GRIS DEL PANEL --}}
+        </div> {{-- CIERRE COLUMNA PANEL LATERAL --}}
+    </div> {{-- CIERRE GRIDS --}}
 
-        {{-- CHECK-OUT --}}
-        <div>
-            <div class="flex items-center gap-2 mb-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-red-500/30"></span>
-                <p class="text-xs font-bold text-red-400 tracking-wide">CHECK-OUT</p>
-            </div>
-
-            @php
-                $checkOut = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'out');
-            @endphp
-
-            @if($checkOut->isEmpty())
-                <p class="text-slate-500 text-xs ml-4">Nadie ha hecho check-out.</p>
-            @else
-                <ul class="ml-4 space-y-1">
-                    @foreach($checkOut as $a)
-                        <li class="text-slate-300">{{ $a->user->name }}</li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
-
-        {{-- BREAK --}}
-        <div>
-            <div class="flex items-center gap-2 mb-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 ring-2 ring-yellow-400/30"></span>
-                <p class="text-xs font-bold text-yellow-400 tracking-wide">BREAK</p>
-            </div>
-
-            @php
-                $break = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'break');
-            @endphp
-
-            @if($break->isEmpty())
-                <p class="text-slate-500 text-xs ml-4">Nadie está en break.</p>
-            @else
-                <ul class="ml-4 space-y-1">
-                    @foreach($break as $a)
-                        <li class="text-slate-300">{{ $a->user->name }}</li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
-
-        {{-- AUSENTES --}}
-        <div>
-            <div class="flex items-center gap-2 mb-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-slate-500 ring-2 ring-slate-500/30"></span>
-                <p class="text-xs font-bold text-slate-400 tracking-wide">AUSENTES</p>
-            </div>
-
-            @php
-                $presentUserIds = $allAttendances->pluck('user_id')->unique();
-                $absentUsers = $users->whereNotIn('id', $presentUserIds);
-            @endphp
-
-            @if($absentUsers->isEmpty())
-                <p class="text-slate-500 text-xs ml-4">No hay ausentes.</p>
-            @else
-                <ul class="ml-4 space-y-1">
-                    @foreach($absentUsers as $u)
-                        <li class="text-slate-300">{{ $u->name }}</li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
-
-    </div>
-</div>
-
-
-
-    {{-- LEAFLET --}}
-    
-   
-
+    {{-- RECURSOS ASSETS LEAFLET --}}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-
-    
+    {{-- ESTILOS MAPA --}}
     <style>
-        #locations-map .leaflet-control-zoom a {
-            background: #1e293b !important;
-            color: #e2e8f0 !important;
-            border: 1px solid #334155 !important;
-        }
-        #locations-map .leaflet-control-zoom a:hover {
-            background: #2563eb !important;
-            color: #fff !important;
-        }
-        #locations-map .leaflet-popup-content-wrapper {
-            background: #0f172a;
-            color: #e2e8f0;
-            border-radius: 10px;
-            border: 1px solid #334155;
-            box-shadow: 0 10px 30px rgba(0,0,0,.4);
-        }
+        #locations-map .leaflet-control-zoom a { background: #1e293b !important; color: #e2e8f0 !important; border: 1px solid #334155 !important; }
+        #locations-map .leaflet-control-zoom a:hover { background: #2563eb !important; color: #fff !important; }
+        #locations-map .leaflet-popup-content-wrapper { background: #0f172a; color: #e2e8f0; border-radius: 10px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
         #locations-map .leaflet-popup-tip { background: #0f172a; }
         #locations-map .leaflet-popup-content { font-size: 12px; line-height: 1.4; }
         #locations-map .leaflet-popup-content strong { color: #60a5fa; }
-        #locations-map .leaflet-control-attribution {
-            background: rgba(15,23,42,.7) !important;
-            color: #94a3b8 !important;
-        }
+        #locations-map .leaflet-control-attribution { background: rgba(15,23,42,.7) !important; color: #94a3b8 !important; }
         #locations-map .leaflet-control-attribution a { color: #60a5fa !important; }
     </style>
-    
+
+    {{-- SCRIPTS JS DE LEAFLET Y LIVEWIRE --}}
     @script
     <script>
         let map = null;
         let markersLayer = null;
 
-       
-            
+        function initMap() {
             if (map !== null) {
                 map.remove();
                 map = null;
@@ -375,82 +296,81 @@
                 maxZoom: 19,
             }).addTo(map);
 
-            function makeDot(color) {
-                return L.divIcon({
-                    className: '',
-                    html: `
-                        <span style="
-                            position: relative;
-                            display: inline-block;
-                            width: 18px; height: 18px;
-                            border-radius: 9999px;
-                            background: ${color};
-                            box-shadow: 0 0 0 4px ${color}33, 0 2px 6px rgba(0,0,0,.4);
-                            border: 2px solid #fff;
-                        "></span>`,
-                    iconSize: [18, 18],
-                    iconAnchor: [9, 9],
-                    popupAnchor: [0, -10],
-                });
-            }
-
-            function renderMarkers(data) {
-                markersLayer.clearLayers();
-                if (!data || data.length === 0) return;
-
-                let bounds = [];
-
-                data.forEach(function (item) {
-                    if (item.check_in_lat && item.check_in_lng) {
-                        L.marker([item.check_in_lat, item.check_in_lng], { icon: makeDot('#10b981') })
-                            .bindPopup(`
-                                <strong>${item.user_name}</strong><br>
-                                <span style="color:#34d399">● Check-in:</span> ${item.check_in_time}<br>
-                                <span style="color:#94a3b8">${item.date}</span>
-                            `)
-                            .addTo(markersLayer);
-
-                        bounds.push([item.check_in_lat, item.check_in_lng]);
-                    }
-
-                    if (item.check_out_lat && item.check_out_lng) {
-                        L.marker([item.check_out_lat, item.check_out_lng], { icon: makeDot('#ef4444') })
-                            .bindPopup(`
-                                <strong>${item.user_name}</strong><br>
-                                <span style="color:#f87171">● Check-out:</span> ${item.check_out_time}<br>
-                                <span style="color:#94a3b8">${item.date}</span>
-                            `)
-                            .addTo(markersLayer);
-
-                        bounds.push([item.check_out_lat, item.check_out_lng]);
-                    }
-
-                    if (item.check_in_lat && item.check_out_lat) {
-                        L.polyline(
-                            [
-                                [item.check_in_lat, item.check_in_lng],
-                                [item.check_out_lat, item.check_out_lng],
-                            ],
-                            {
-                                color: '#fbbf24',
-                                weight: 3,
-                                dashArray: '6,6',
-                                opacity: 0.8,
-                            }
-                        ).addTo(markersLayer);
-                    }
-                });
-
-                if (bounds.length > 0) {
-                    map.fitBounds(bounds, { padding: [40, 40] });
-                }
-            }
-
             renderMarkers(@json($locations));
+        }
 
-            Livewire.on('refreshLocationsMap', data => renderMarkers(data));
-        });
+        function makeDot(color) {
+            return L.divIcon({
+                className: '',
+                html: `
+                    <span style="
+                        position: relative;
+                        display: inline-block;
+                        width: 18px; height: 18px;
+                        border-radius: 9999px;
+                        background: ${color};
+                        box-shadow: 0 0 0 4px ${color}33, 0 2px 6px rgba(0,0,0,.4);
+                        border: 2px solid #fff;
+                    "></span>`,
+                iconSize: [18, 18],
+                iconAnchor: [9, 9],
+                popupAnchor: [0, -10],
+            });
+        }
+
+        function renderMarkers(data) {
+            if(!markersLayer) return;
+            markersLayer.clearLayers();
+            if (!data || data.length === 0) return;
+
+            let bounds = [];
+
+            data.forEach(function (item) {
+                if (item.check_in_lat && item.check_in_lng) {
+                    L.marker([item.check_in_lat, item.check_in_lng], { icon: makeDot('#10b981') })
+                        .bindPopup(`
+                            <strong>${item.user_name}</strong><br>
+                            <span style="color:#34d399">● Check-in:</span> ${item.check_in_time}<br>
+                            <span style="color:#94a3b8">${item.date}</span>
+                        `)
+                        .addTo(markersLayer);
+
+                    bounds.push([item.check_in_lat, item.check_in_lng]);
+                }
+
+                if (item.check_out_lat && item.check_out_lng) {
+                    L.marker([item.check_out_lat, item.check_out_lng], { icon: makeDot('#ef4444') })
+                        .bindPopup(`
+                            <strong>${item.user_name}</strong><br>
+                            <span style="color:#f87171">● Check-out:</span> ${item.check_out_time}<br>
+                            <span style="color:#94a3b8">${item.date}</span>
+                        `)
+                        .addTo(markersLayer);
+
+                    bounds.push([item.check_out_lat, item.check_out_lng]);
+                }
+
+                if (item.check_in_lat && item.check_out_lat) {
+                    L.polyline(
+                        [
+                            [item.check_in_lat, item.check_in_lng],
+                            [item.check_out_lat, item.check_out_lng],
+                        ],
+                        { color: '#fbbf24', weight: 3, dashArray: '6,6', opacity: 0.8 }
+                    ).addTo(markersLayer);
+                }
+            });
+
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [40, 40] });
+            }
+        }
+
+        // Inicializamos
+        initMap();
+
+        Livewire.on('refreshLocationsMap', data => renderMarkers(data));
     </script>
-  @endscript
+    @endscript
 
 </x-filament-panels::page>
