@@ -29,8 +29,8 @@ class TimesheetEngine
             ];
         }
 
-        // Lógica Biométrica: Si tiene entrada y salida, o al menos entrada, evaluamos dinámicamente
-        $status = strtolower(trim($attendance->status ?? ''));
+       
+        $status = strtolower(trim($attendance->getStatus() ?? ''));
         $type   = strtolower(trim($attendance->type ?? ''));
 
         // Vacaciones
@@ -54,7 +54,7 @@ class TimesheetEngine
             'incomplete' => TimesheetState::INCOMPLETE,
             'absent'     => TimesheetState::ABSENT,
             'none'       => TimesheetState::NONE,
-            default      => TimesheetState::PRESENT, // Caída segura para tus pruebas de ayer
+            default      => TimesheetState::PRESENT, 
         };
 
         return [

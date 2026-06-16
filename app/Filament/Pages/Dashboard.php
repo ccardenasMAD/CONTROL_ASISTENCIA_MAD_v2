@@ -6,7 +6,6 @@ use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Attendance;
 
-// IMPORTACIONES REALES VERIFICADAS EN TU CARPETA WIDGETS
 use App\Filament\Widgets\MyMonthlyAttendance;
 use App\Filament\Widgets\TodayWorkday;
 use App\Filament\Widgets\WeeklyProductivityChart;

@@ -178,78 +178,7 @@
                         </div>
                     </div>
 
-                    {{-- ESTADO DETALLADO --}}
-                    <div class="border-t border-slate-800 pt-4">
-                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Estado detallado</h4>
-                        <div class="bg-slate-950/60 ring-1 ring-slate-800 rounded-2xl p-4 text-sm space-y-5">
-                            {{-- CHECK-IN DETALLADO --}}
-                            <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/30"></span>
-                                    <p class="text-xs font-bold text-emerald-400 tracking-wide">CHECK-IN</p>
-                                </div>
-                                @php $checkIn = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'in'); @endphp
-                                @if($checkIn->isEmpty())
-                                    <p class="text-slate-500 text-xs ml-4">Nadie ha hecho check-in.</p>
-                                @else
-                                    <ul class="ml-4 space-y-1">
-                                        @foreach($checkIn as $a) <li class="text-slate-300">{{ $a->user->name }}</li> @endforeach
-                                    </ul>
-                                @endif
-                            </div>
-
-                            {{-- CHECK-OUT DETALLADO --}}
-                            <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-red-500/30"></span>
-                                    <p class="text-xs font-bold text-red-400 tracking-wide">CHECK-OUT</p>
-                                </div>
-                                @php $checkOut = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'out'); @endphp
-                                @if($checkOut->isEmpty())
-                                    <p class="text-slate-500 text-xs ml-4">Nadie ha hecho check-out.</p>
-                                @else
-                                    <ul class="ml-4 space-y-1">
-                                        @foreach($checkOut as $a) <li class="text-slate-300">{{ $a->user->name }}</li> @endforeach
-                                    </ul>
-                                @endif
-                            </div>
-
-                            {{-- BREAK DETALLADO --}}
-                            <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 ring-2 ring-yellow-400/30"></span>
-                                    <p class="text-xs font-bold text-yellow-400 tracking-wide">BREAK</p>
-                                </div>
-                                @php $break = $allAttendances->filter(fn($a) => $a->getLocationStatus() === 'break'); @endphp
-                                @if($break->isEmpty())
-                                    <p class="text-slate-500 text-xs ml-4">Nadie está en break.</p>
-                                @else
-                                    <ul class="ml-4 space-y-1">
-                                        @foreach($break as $a) <li class="text-slate-300">{{ $a->user->name }}</li> @endforeach
-                                    </ul>
-                                @endif
-                            </div>
-
-                            {{-- AUSENTES DETALLADO --}}
-                            <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-500 ring-2 ring-slate-500/30"></span>
-                                    <p class="text-xs font-bold text-slate-400 tracking-wide">AUSENTES</p>
-                                </div>
-                                @php
-                                    $presentUserIds = $allAttendances->pluck('user_id')->unique();
-                                    $absentUsers = $users->whereNotIn('id', $presentUserIds);
-                                @endphp
-                                @if($absentUsers->isEmpty())
-                                    <p class="text-slate-500 text-xs ml-4">No hay ausentes.</p>
-                                @else
-                                    <ul class="ml-4 space-y-1">
-                                        @foreach($absentUsers as $u) <li class="text-slate-300">{{ $u->name }}</li> @endforeach
-                                    </ul>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
+                    
 
                 </div> {{-- CIERRE CONTENIDO SCROLLABLE --}}
             </div> {{-- CIERRE DE LA CAJA GRIS DEL PANEL --}}

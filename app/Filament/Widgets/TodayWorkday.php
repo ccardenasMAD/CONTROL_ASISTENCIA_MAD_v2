@@ -36,6 +36,8 @@ class TodayWorkday extends Widget
                 ->title('Ya registraste una entrada para el día de hoy.')
                 ->warning()
                 ->send();
+                $this->dispatch('map-focus', lat: $lat, lng: $lng, type: 'checkin');
+                
             return;
         }
 
@@ -43,14 +45,17 @@ class TodayWorkday extends Widget
             'user_id'         => $userId,
             'attendance_date' => $today,
             'check_in'        => now(),
+            'check_in_lat'    => $lat,
+            'check_in_lng'    => $lng,
         ]);
 
         Notification::make()
             ->title('Entrada registrada correctamente.')
             ->success()
             ->send();
+            $this->dispatch('map-focus', lat: $lat, lng: $lng, type: 'checkin');
 
-        $this->dispatch('attendance-updated');
+            $this->dispatch('attendance-updated');
     }
 
     public function startBreak(): void
@@ -131,23 +136,24 @@ class TodayWorkday extends Widget
     }
 
     public function getViewData(): array
-    {
-        $userId = Auth::id();
-        $today = now()->toDateString();
+{
+    $userId = Auth::id();
+    $today = now()->toDateString();
 
-        $attendance = Attendance::where('user_id', $userId)
-            ->where('attendance_date', $today)
-            ->first();
+    $attendance = Attendance::where('user_id', $userId)
+        ->where('attendance_date', $today)
+        ->first();
 
-        return [
-            'attendance'     => $attendance,
-            'status'         => $attendance?->getStatus() ?? 'none',
-            'action'         => Attendance::getTodayActionButton($userId),
-            'workedMinutes'  => $attendance?->getWorkedMinutes() ?? 0,
-            'timeline'       => Attendance::getTodayTimeline($userId),
-            'workStart'      => $attendance?->getWorkStartForTimer(),
-            'isCheckedOut'   => (bool) $attendance?->check_out,
-            'checkOutTime'   => $attendance?->check_out ? $attendance->check_out->timestamp : null,
-        ];
-    }
+    return [
+        'attendance'     => $attendance,
+        'status'         => $attendance?->getStatus() ?? 'none',
+        'action'         => Attendance::getTodayActionButton($userId),
+        'workedMinutes'  => $attendance?->getWorkedMinutes() ?? 0,
+        'timeline'       => Attendance::getTodayTimeline($userId),
+        'workStart'      => $attendance?->getWorkStartForTimer(),
+        'isCheckedOut'   => (bool) $attendance?->check_out,
+        'checkOutTime'   => $attendance?->check_out ? $attendance->check_out->timestamp : null,
+    ];
+}
+
 }
